@@ -1,5 +1,5 @@
 namespace DAI {
-  export const VERSION = "0.1.0";
+  export const VERSION = "0.2.0";
   export const ROOT_ID = "__discord_asset_inspector__";
 
   export const EXTENSIONS = new Set([
