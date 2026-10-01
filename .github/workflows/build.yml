@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "src/**"
+      - "scripts/**"
       - "package.json"
       - "tsconfig.json"
       - "tsconfig.betterdiscord.json"
@@ -24,6 +25,8 @@ jobs:
       - run: npm install
       - run: npm run check
       - run: npm run build
+      - name: Verify BetterDiscord metadata header
+        run: node -e "const fs=require('fs');const s=fs.readFileSync('plugins/betterdiscord/DiscordAssetInspector.plugin.js','utf8');if(!s.startsWith('/**'))process.exit(1)"
       - name: Commit generated distributions
         run: |
           if [ -z "$(git status --porcelain -- dist/ plugins/betterdiscord/)" ]; then
