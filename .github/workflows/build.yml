@@ -6,6 +6,7 @@ on:
       - "src/**"
       - "package.json"
       - "tsconfig.json"
+      - "tsconfig.betterdiscord.json"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -23,14 +24,14 @@ jobs:
       - run: npm install
       - run: npm run check
       - run: npm run build
-      - name: Commit browser bundle
+      - name: Commit generated distributions
         run: |
-          if [ -z "$(git status --porcelain -- dist/)" ]; then
-            echo "dist is already up to date"
+          if [ -z "$(git status --porcelain -- dist/ plugins/betterdiscord/)" ]; then
+            echo "Generated distributions are already up to date"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/discord-asset-inspector.js
-          git commit -m "build: refresh browser bundle"
+          git add dist/discord-asset-inspector.js plugins/betterdiscord/DiscordAssetInspector.plugin.js
+          git commit -m "build: refresh distributions"
           git push
