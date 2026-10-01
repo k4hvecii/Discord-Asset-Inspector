@@ -21,7 +21,7 @@ namespace DAI {
   previousDispose?.();
 
   const onShortcut = (event: KeyboardEvent) => {
-    if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "KeyI") {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "KeyK") {
       event.preventDefault();
       event.stopImmediatePropagation();
       toggle();
