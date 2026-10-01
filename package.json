@@ -1,0 +1,14 @@
+{
+  "name": "discord-asset-inspector",
+  "version": "0.1.0",
+  "private": false,
+  "description": "A privacy-conscious developer utility for inspecting assets loaded by the Discord desktop client.",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
