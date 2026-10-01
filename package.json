@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run build:standalone && npm run build:betterdiscord",
     "build:standalone": "tsc -p tsconfig.json",
-    "build:betterdiscord": "tsc -p tsconfig.betterdiscord.json",
+    "build:betterdiscord": "tsc -p tsconfig.betterdiscord.json && node scripts/fix-betterdiscord-header.mjs",
     "check": "npm run check:standalone && npm run check:betterdiscord",
     "check:standalone": "tsc -p tsconfig.json --noEmit",
     "check:betterdiscord": "tsc -p tsconfig.betterdiscord.json --noEmit"
