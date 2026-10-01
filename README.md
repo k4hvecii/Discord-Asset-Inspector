@@ -6,6 +6,8 @@ A privacy-conscious asset inspection utility for the Discord desktop client.
 
 **BetterDiscord plugin · Standalone build · No token access · No telemetry**
 
+[Download BetterDiscord plugin](https://github.com/k4hvecii/Discord-Asset-Inspector/raw/refs/heads/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js)
+
 </div>
 
 ## Quick start — BetterDiscord
