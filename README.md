@@ -2,11 +2,34 @@
 
 # Discord Asset Inspector
 
-A small, privacy-conscious developer utility for inspecting assets already exposed to the Discord desktop client.
+A privacy-conscious asset inspection utility for the Discord desktop client.
 
-**No token access · No telemetry · No external dependencies at runtime**
+**BetterDiscord plugin · Standalone build · No token access · No telemetry**
 
 </div>
+
+## Quick start — BetterDiscord
+
+The easiest way to use Discord Asset Inspector is the BetterDiscord plugin.
+
+1. Install BetterDiscord.
+2. Download `plugins/betterdiscord/DiscordAssetInspector.plugin.js` from this repository.
+3. Put the file in your BetterDiscord plugins folder.
+4. Open Discord → Settings → BetterDiscord → Plugins.
+5. Enable **Discord Asset Inspector**.
+6. Open the plugin settings and click **Open Asset Inspector**, or press `Ctrl/Cmd + Shift + K`.
+
+Default BetterDiscord plugin folders:
+
+```text
+Windows: %appdata%\BetterDiscord\plugins
+macOS:   ~/Library/Application Support/BetterDiscord/plugins
+Linux:   ~/.config/BetterDiscord/plugins
+```
+
+The plugin is a single JavaScript file and has no runtime dependencies.
+
+> BetterDiscord is a third-party client modification and is not affiliated with this project or Discord Inc.
 
 ## What it does
 
@@ -21,26 +44,18 @@ Discord Asset Inspector opens a local overlay inside the Discord desktop client 
 
 The interface supports search, extension/source filters, sorting, image/video previews, URL copying, opening/saving individual assets and JSON export.
 
-## Why this project exists
+## Standalone usage
 
-This project is an independent implementation built from scratch for client-side development and UI/resource inspection. It is not a fork of another asset explorer and does not include third-party source code.
+A standalone console build is still available for developers who do not use BetterDiscord.
 
-## Usage
+1. Open `dist/discord-asset-inspector.js`.
+2. Review and copy the complete file.
+3. Open Discord Desktop developer tools and switch to Console.
+4. Paste the script and press Enter.
 
-1. Build the project or use `dist/discord-asset-inspector.js`.
-2. Open Discord Desktop developer tools.
-3. Open the Console tab.
-4. Review the script, paste it into the console and press Enter.
+The inspector opens immediately. Toggle it with `Ctrl/Cmd + Shift + K`.
 
-The inspector opens immediately. Toggle it with:
-
-```text
-Ctrl + Shift + I
-```
-
-On macOS use `Cmd + Shift + I`.
-
-You can also control the running instance from the console:
+Console API:
 
 ```js
 __DISCORD_ASSET_INSPECTOR__.open()
@@ -52,18 +67,17 @@ __DISCORD_ASSET_INSPECTOR__.assets()
 
 ## Build
 
-TypeScript is the only development dependency.
-
 ```bash
 npm install
 npm run check
 npm run build
 ```
 
-The browser-ready single-file build is written to:
+Build outputs:
 
 ```text
 dist/discord-asset-inspector.js
+plugins/betterdiscord/DiscordAssetInspector.plugin.js
 ```
 
 ## Project structure
@@ -71,27 +85,28 @@ dist/discord-asset-inspector.js
 ```text
 src/
 ├─ core/
-│  ├─ constants.ts
-│  ├─ registry.ts
-│  ├─ types.ts
-│  └─ utils.ts
 ├─ scanners/
-│  ├─ cache.ts
-│  ├─ css.ts
-│  ├─ dom.ts
-│  ├─ performance.ts
-│  └─ webpack.ts
 ├─ ui/
-│  ├─ app.ts
-│  └─ styles.ts
+├─ betterdiscord.ts
 └─ index.ts
+
+plugins/
+└─ betterdiscord/
+   └─ DiscordAssetInspector.plugin.js
+
+dist/
+└─ discord-asset-inspector.js
 ```
+
+Both distributions use the same scanner and UI source code.
 
 ## Security model
 
 The project intentionally avoids authentication/session inspection. It contains no token lookup, cookie lookup, telemetry, webhook sender or mutation requests. Lazy scanning is restricted to same-origin or Discord-owned hosts and uses GET requests only.
 
-See `SECURITY.md` for the exact behavior.
+The BetterDiscord edition only uses the official `BdApi.UI` surface for its enable toast; the inspector itself remains local to the client.
+
+See `SECURITY.md` for details.
 
 ## Limitations
 
