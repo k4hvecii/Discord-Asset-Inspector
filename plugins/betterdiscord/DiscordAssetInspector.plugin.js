@@ -1,4 +1,3 @@
-"use strict";
 /**
  * @name DiscordAssetInspector
  * @author K4hveci
