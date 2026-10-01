@@ -11,6 +11,10 @@ on:
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
+concurrency:
+  group: discord-asset-inspector-build-main
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -37,4 +41,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dist/discord-asset-inspector.js plugins/betterdiscord/DiscordAssetInspector.plugin.js
           git commit -m "build: refresh distributions"
+          git pull --rebase
           git push
