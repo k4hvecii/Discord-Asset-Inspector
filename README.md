@@ -44,7 +44,7 @@ Discord Asset Inspector opens a local overlay inside the Discord desktop client 
 - browser Cache Storage
 - optional Discord-owned lazy JavaScript/CSS resources, fetched and scanned as text without executing the discovered chunks
 
-The interface is organized as a small asset library with type tabs for images, video, audio, fonts, code/data and other files. It supports search, extension/source filters, module/source sorting, multi-select, selected-only view, URL/Markdown/CSS/HTML copy formats, individual open/save actions and JSON export.
+The interface is organized as a small asset library with type tabs for images, video, audio, fonts, code/data and other files. By default it focuses on Discord client assets and filters runtime user content such as avatars, emojis, stickers and attachments. The **Kullanıcı içeriği** toggle can explicitly include those resources when needed. It supports search, extension/source filters, module/source sorting, multi-select, selected-only view, URL/Markdown/CSS/HTML copy formats, individual open/save actions and JSON export.
 
 ## v0.3 workflow
 
