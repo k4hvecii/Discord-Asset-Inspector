@@ -175,6 +175,25 @@ var DAI;
         }
     }
     DAI.isUserContentAssetUrl = isUserContentAssetUrl;
+    function isLikelyNoiseAssetUrl(url) {
+        try {
+            const parsed = new URL(url, location.href);
+            const path = decodeURIComponent(parsed.pathname).toLowerCase();
+            const name = (path.split("/").pop() || "").split(".")[0];
+            if (isUserContentAssetUrl(parsed.href))
+                return true;
+            const unicodeEmojiName = /^(?:emoji[_-]?)?(?:u[_+-]?)?[0-9a-f]{4,6}(?:[-_][0-9a-f]{2,6}){0,7}$/i.test(name);
+            if (unicodeEmojiName)
+                return true;
+            return (/(?:^|[-_.])(twemoji|emoji-sprite|emoji_sprite|emoji-pack|emoji_pack)(?:[-_.]|$)/i.test(name) ||
+                path.includes("/embed/avatars/") ||
+                path.includes("/default-avatars/"));
+        }
+        catch {
+            return false;
+        }
+    }
+    DAI.isLikelyNoiseAssetUrl = isLikelyNoiseAssetUrl;
     function isLikelyClientAssetUrl(url) {
         if (url.startsWith("data:") || url.startsWith("blob:"))
             return false;
@@ -197,9 +216,9 @@ var DAI;
     function shouldIncludeAsset(url, source, includeUserContent) {
         if (includeUserContent)
             return true;
-        if (isUserContentAssetUrl(url))
+        if (isLikelyNoiseAssetUrl(url))
             return false;
-        const runtimeOnlySources = new Set(["dom", "performance", "cache"]);
+        const runtimeOnlySources = new Set(["dom", "performance", "cache", "css"]);
         if (!runtimeOnlySources.has(source))
             return true;
         return isLikelyClientAssetUrl(url);
@@ -290,6 +309,9 @@ var DAI;
         }
         isUserContentEnabled() {
             return this.includeUserContent;
+        }
+        clear() {
+            this.items.clear();
         }
         setRuntime(runtime) {
             this.runtime = runtime;
