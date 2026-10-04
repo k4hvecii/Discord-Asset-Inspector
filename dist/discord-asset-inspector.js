@@ -1,7 +1,7 @@
 "use strict";
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.5.0";
+    DAI.VERSION = "0.5.1";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
@@ -842,6 +842,16 @@ var DAI;
   border-color: rgba(250,166,26,.34);
   background: rgba(250,166,26,.09);
   color: #f2c26f;
+}
+
+.dai-root .dai-raw-toggle {
+  color: #8f97a4;
+}
+
+.dai-root .dai-raw-toggle.is-active {
+  border-color: rgba(88,101,242,.42);
+  background: rgba(88,101,242,.12);
+  color: #cfd3ff;
 }
 
 .dai-root .dai-bulk select {
