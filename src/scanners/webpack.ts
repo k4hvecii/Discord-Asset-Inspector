@@ -4,6 +4,13 @@ namespace DAI {
   export class WebpackScanner {
     readonly chunkIds = new Set<string>();
     runtime: WebpackRuntime | null = null;
+    private readonly moduleCache = new WeakMap<Function, {
+      assets: string[];
+      chunks: string[];
+      imageAssetCount: number;
+      emojiLike: boolean;
+      avatarLike: boolean;
+    }>();
 
     constructor(private readonly registry: AssetRegistry) {}
 
@@ -27,51 +34,60 @@ namespace DAI {
       const modules = this.runtime?.m;
       if (!modules) return { added: 0, scannedModules: 0, discoveredChunks: 0 };
 
+      this.chunkIds.clear();
       const assetRe = assetRegex();
       const chunkRe = /\.e\(\s*["']?([\w$-]+)["']?\s*\)/g;
       let scanned = 0;
 
       for (const [id, factory] of Object.entries(modules)) {
-        let code = "";
-        try {
-          code = factory.toString();
-        } catch {
-          continue;
+        let parsed = this.moduleCache.get(factory);
+
+        if (!parsed) {
+          let code = "";
+          try {
+            code = factory.toString();
+          } catch {
+            continue;
+          }
+
+          assetRe.lastIndex = 0;
+          const assets: string[] = [];
+          let match: RegExpExecArray | null;
+          while ((match = assetRe.exec(code))) assets.push(match[0]);
+
+          chunkRe.lastIndex = 0;
+          const chunks: string[] = [];
+          while ((match = chunkRe.exec(code))) chunks.push(match[1]);
+
+          const imageAssetCount = assets.reduce((count, raw) => {
+            const normalized = normalizeUrl(raw, this.runtime);
+            return normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)) ? count + 1 : count;
+          }, 0);
+
+          parsed = {
+            assets,
+            chunks,
+            imageAssetCount,
+            emojiLike: /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(code),
+            avatarLike: /(default.?avatar|avatar.?asset|default.?profile|embed.?avatar)/i.test(code)
+          };
+          this.moduleCache.set(factory, parsed);
         }
+
         scanned++;
+        parsed.chunks.forEach(chunkId => this.chunkIds.add(chunkId));
 
-        assetRe.lastIndex = 0;
-        let match: RegExpExecArray | null;
-        const discoveredAssets: string[] = [];
-        while ((match = assetRe.exec(code))) discoveredAssets.push(match[0]);
+        const broadMode = this.registry.isUserContentEnabled();
+        const noisyEmojiModule = !broadMode && parsed.emojiLike && parsed.imageAssetCount >= 3;
+        const noisyAvatarModule = !broadMode && parsed.avatarLike && parsed.imageAssetCount >= 2;
+        const denseImageCatalog = !broadMode && parsed.imageAssetCount >= 64;
 
-        const lower = code.toLowerCase();
-        const imageAssetCount = discoveredAssets.reduce((count, raw) => {
+        for (const raw of parsed.assets) {
           const normalized = normalizeUrl(raw, this.runtime);
-          return normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)) ? count + 1 : count;
-        }, 0);
-
-        const noisyEmojiModule =
-          !this.registry.isUserContentEnabled() &&
-          imageAssetCount >= 24 &&
-          /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(lower);
-
-        const noisyAvatarModule =
-          !this.registry.isUserContentEnabled() &&
-          imageAssetCount >= 8 &&
-          /(default.?avatar|avatar.?asset|default.?profile)/i.test(lower);
-
-        const denseImageCatalog =
-          !this.registry.isUserContentEnabled() &&
-          imageAssetCount >= 128;
-
-        for (const raw of discoveredAssets) {
-          if (noisyEmojiModule || noisyAvatarModule || denseImageCatalog) continue;
+          const image = Boolean(normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)));
+          if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog)) continue;
           this.registry.add(raw, "webpack", id);
         }
-
-        chunkRe.lastIndex = 0;
-        while ((match = chunkRe.exec(code))) this.chunkIds.add(match[1]);
       }
 
       return {
@@ -132,8 +148,30 @@ namespace DAI {
             if (!response.ok) throw new Error(String(response.status));
             const text = await response.text();
             assetRe.lastIndex = 0;
+            const assets: string[] = [];
             let match: RegExpExecArray | null;
-            while ((match = assetRe.exec(text))) this.registry.add(match[0], item.source);
+            while ((match = assetRe.exec(text))) assets.push(match[0]);
+
+            const broadMode = this.registry.isUserContentEnabled();
+            const imageAssetCount = assets.reduce((count, raw) => {
+              const normalized = normalizeUrl(raw, this.runtime);
+              return normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)) ? count + 1 : count;
+            }, 0);
+            const emojiHeavy =
+              !broadMode &&
+              imageAssetCount >= 24 &&
+              /(emoji|twemoji|unicode.?emoji|emoji.?asset|emoji.?sprite)/i.test(text);
+            const avatarHeavy =
+              !broadMode &&
+              imageAssetCount >= 8 &&
+              /(default.?avatar|avatar.?asset|default.?profile)/i.test(text);
+
+            for (const raw of assets) {
+              const normalized = normalizeUrl(raw, this.runtime);
+              const image = Boolean(normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)));
+              if (image && (emojiHeavy || avatarHeavy)) continue;
+              this.registry.add(raw, item.source);
+            }
           } catch {
             if (!signal.aborted) failed++;
           } finally {
