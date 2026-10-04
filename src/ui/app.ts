@@ -21,6 +21,9 @@ namespace DAI {
     private selected = new Set<string>();
     private kind: AssetKind | "all" = "all";
     private selectedOnly = false;
+    private renderLimit = 60;
+    private readonly renderStep = 60;
+    private layoutRepairApplied = false;
     private abortController = new AbortController();
     private closed = false;
 
@@ -101,11 +104,11 @@ namespace DAI {
       this.selectedOnlyButton = this.must<HTMLButtonElement>("[data-action=selected-only]");
       this.userContentButton = this.must<HTMLButtonElement>("[data-action=user-content]");
 
-      const refresh = debounce(() => this.applyFilters(), 120);
+      const refresh = debounce(() => this.resetRenderWindow(), 120);
       this.searchEl.addEventListener("input", refresh);
-      this.extensionEl.addEventListener("change", () => this.applyFilters());
-      this.sourceEl.addEventListener("change", () => this.applyFilters());
-      this.sortEl.addEventListener("change", () => this.applyFilters());
+      this.extensionEl.addEventListener("change", () => this.resetRenderWindow());
+      this.sourceEl.addEventListener("change", () => this.resetRenderWindow());
+      this.sortEl.addEventListener("change", () => this.resetRenderWindow());
 
       this.surface.addEventListener("click", event => this.handleClick(event));
       this.surface.querySelector(".dai-backdrop")?.addEventListener("click", () => this.close());
@@ -134,7 +137,7 @@ namespace DAI {
       if (action === "kind") {
         this.kind = (button.dataset.kind || "all") as AssetKind | "all";
         this.surface.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
-        this.applyFilters();
+        this.resetRenderWindow();
         return;
       }
       if (action === "select-visible") {
@@ -156,22 +159,16 @@ namespace DAI {
       }
       if (action === "user-content") {
         const enabled = !this.registry.isUserContentEnabled();
-        const removed = this.registry.setIncludeUserContent(enabled);
+        this.registry.setIncludeUserContent(enabled);
         this.userContentButton.setAttribute("aria-pressed", String(enabled));
         this.userContentButton.classList.toggle("is-active", enabled);
         this.userContentButton.textContent = `Kullanıcı içeriği: ${enabled ? "Açık" : "Kapalı"}`;
-
-        if (enabled) {
-          this.setStatus("Kullanıcı içeriği dahil ediliyor…");
-          await this.rescan();
-        } else {
-          for (const url of [...this.selected]) {
-            if (!this.registry.get(url)) this.selected.delete(url);
-          }
-          this.rebuildFilters();
-          this.applyFilters();
-          this.setStatus(`Kullanıcı içeriği gizlendi · ${removed} kayıt kaldırıldı.`);
-        }
+        await this.rescan();
+        return;
+      }
+      if (action === "load-more") {
+        this.renderLimit += this.renderStep;
+        this.renderCards();
         return;
       }
       if (action === "copy-selected") {
@@ -206,19 +203,28 @@ namespace DAI {
 
     async rescan(): Promise<void> {
       if (this.closed) return;
-      this.setStatus("Yüklü kaynaklar taranıyor…");
+
+      this.setStatus("Temiz tarama başlatılıyor…");
+      this.registry.clear();
+      this.selected.clear();
+      this.renderLimit = this.renderStep;
+      this.layoutRepairApplied = false;
+
       this.webpack.connect();
       const reports: ScanReport[] = [
         this.webpack.scanLoadedModules(),
-        scanPerformance(this.registry),
         scanDom(this.registry),
-        scanCss(this.registry),
-        await scanCache(this.registry)
+        scanCss(this.registry)
       ];
-      const added = reports.reduce((sum, report) => sum + report.added, 0);
+
+      if (this.registry.isUserContentEnabled()) {
+        reports.push(scanPerformance(this.registry));
+      }
+
       this.rebuildFilters();
       this.applyFilters();
-      this.setStatus(`Tarama tamamlandı · ${added} yeni varlık.`);
+      const scanned = reports.reduce((sum, report) => sum + (report.scannedResources || 0) + (report.scannedModules || 0), 0);
+      this.setStatus(`Tarama tamamlandı · ${this.registry.size()} temiz varlık · ${scanned} kaynak incelendi.`);
     }
 
     private async scanLazy(): Promise<void> {
@@ -249,6 +255,11 @@ namespace DAI {
       this.sourceEl.innerHTML = `<option value="">Tüm kaynaklar</option>${sources.map(x => `<option value="${escapeHtml(x)}">${escapeHtml(sourceLabel(x as AssetSource))}</option>`).join("")}`;
       if (extensions.includes(extension)) this.extensionEl.value = extension;
       if (sources.includes(source as AssetSource)) this.sourceEl.value = source;
+    }
+
+    private resetRenderWindow(): void {
+      this.renderLimit = this.renderStep;
+      this.applyFilters();
     }
 
     private applyFilters(): void {
@@ -303,7 +314,7 @@ namespace DAI {
         return;
       }
 
-      const limit = 350;
+      const limit = Math.min(this.renderLimit, this.visible.length);
       const html = this.visible.slice(0, limit).map(item => {
         const preview = this.previewHtml(item);
         const selected = this.selected.has(item.url);
@@ -344,7 +355,81 @@ namespace DAI {
         </article>`;
       }).join("");
 
-      this.grid.innerHTML = html + (this.visible.length > limit ? `<div class="dai-empty">İlk ${limit} / ${this.visible.length} sonuç gösteriliyor. Daha fazlası için filtreleri daralt.</div>` : "");
+      const remaining = Math.max(0, this.visible.length - limit);
+      this.grid.innerHTML = html + (remaining
+        ? `<div class="dai-load-more"><button data-action="load-more">Daha fazla göster <span>+${Math.min(this.renderStep, remaining)}</span></button><small>${limit} / ${this.visible.length} gösteriliyor</small></div>`
+        : "");
+      this.scheduleLayoutCheck();
+    }
+
+    private scheduleLayoutCheck(): void {
+      requestAnimationFrame(() => {
+        if (this.closed) return;
+        const card = this.grid.querySelector<HTMLElement>(".dai-card");
+        const preview = card?.querySelector<HTMLElement>(".dai-preview");
+        if (!card || !preview) return;
+
+        const gridStyle = getComputedStyle(this.grid);
+        const cardRect = card.getBoundingClientRect();
+        const previewRect = preview.getBoundingClientRect();
+
+        const broken =
+          gridStyle.display !== "grid" ||
+          cardRect.width < 150 ||
+          cardRect.height < 150 ||
+          previewRect.height < 70;
+
+        if (broken) this.applyCriticalLayoutFallback();
+      });
+    }
+
+    private applyCriticalLayoutFallback(): void {
+      if (this.layoutRepairApplied) return;
+      this.layoutRepairApplied = true;
+
+      Object.assign(this.grid.style, {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
+        alignContent: "start",
+        gap: "12px",
+        padding: "14px 18px 20px",
+        overflow: "auto"
+      });
+
+      this.grid.querySelectorAll<HTMLElement>(".dai-card").forEach(card => {
+        Object.assign(card.style, {
+          display: "block",
+          minWidth: "0",
+          minHeight: "235px",
+          overflow: "hidden",
+          border: "1px solid rgba(255,255,255,.09)",
+          borderRadius: "13px",
+          background: "#1c1f25"
+        });
+        const preview = card.querySelector<HTMLElement>(".dai-preview");
+        if (preview) {
+          Object.assign(preview.style, {
+            position: "relative",
+            display: "grid",
+            placeItems: "center",
+            width: "100%",
+            height: "145px",
+            minHeight: "145px",
+            overflow: "hidden",
+            background: "#111318"
+          });
+        }
+        const body = card.querySelector<HTMLElement>(".dai-body");
+        if (body) {
+          Object.assign(body.style, {
+            display: "block",
+            minHeight: "88px",
+            padding: "11px"
+          });
+        }
+      });
+
+      this.setStatus("Görünüm koruması etkinleştirildi.");
     }
 
     private urlHost(url: string): string {
