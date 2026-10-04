@@ -640,7 +640,9 @@ var DAI;
                         chunks,
                         imageAssetCount,
                         emojiLike: /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(code),
-                        avatarLike: /(default.?avatar|avatar.?asset|default.?profile|embed.?avatar)/i.test(code)
+                        avatarLike: /(default.?avatar|avatar.?asset|default.?profile|embed.?avatar)/i.test(code),
+                        stickerLike: /(sticker|sticker.?pack|sticker.?asset)/i.test(code),
+                        profileLike: /(profile.?effect|avatar.?decoration|profile.?decoration|collectibles?)/i.test(code)
                     };
                     this.moduleCache.set(factory, parsed);
                 }
@@ -652,8 +654,13 @@ var DAI;
                 const denseImageCatalog = !broadMode && parsed.imageAssetCount >= 64;
                 for (const raw of parsed.assets) {
                     const normalized = DAI.normalizeUrl(raw, this.runtime);
-                    const image = Boolean(normalized && DAI.IMAGE_EXTENSIONS.has(DAI.getExtension(normalized)));
-                    if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog))
+                    const extension = normalized ? DAI.getExtension(normalized) : "";
+                    const image = DAI.IMAGE_EXTENSIONS.has(extension);
+                    const rasterImage = image && extension !== "svg";
+                    const contextualNoise = !broadMode &&
+                        rasterImage &&
+                        (parsed.emojiLike || parsed.avatarLike || parsed.stickerLike || parsed.profileLike);
+                    if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog || contextualNoise))
                         continue;
                     this.registry.add(raw, "webpack", id);
                 }
