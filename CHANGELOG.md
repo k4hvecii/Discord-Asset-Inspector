@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 - 2026-10-04
+
+- Fixed malformed escaped newlines in the injected stylesheet that collapsed asset cards.
+- Restored full card layout, previews and action controls.
+- Localized the BetterDiscord interface and plugin settings to Turkish.
+- Added Turkish labels for asset categories and scanner sources.
+
+
 ## 0.3.0 - 2026-10-04
 
 - Added image, video, audio, font, code/data and other asset categories.
