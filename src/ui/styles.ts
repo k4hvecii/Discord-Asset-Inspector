@@ -176,6 +176,16 @@ namespace DAI {
   color: #dfe2ff;
 }
 
+#${ROOT_ID} .dai-content-toggle {
+  color: #8f97a4;
+}
+
+#${ROOT_ID} .dai-content-toggle.is-active {
+  border-color: rgba(250,166,26,.34);
+  background: rgba(250,166,26,.09);
+  color: #f2c26f;
+}
+
 #${ROOT_ID} .dai-bulk select {
   width: 126px;
   height: 31px;
