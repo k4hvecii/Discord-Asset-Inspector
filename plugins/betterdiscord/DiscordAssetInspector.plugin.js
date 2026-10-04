@@ -1,8 +1,8 @@
 /**
  * @name DiscordAssetInspector
  * @author K4hveci
- * @description Inspect assets loaded by the Discord desktop client from a local BetterDiscord panel.
- * @version 0.2.0
+ * @description Browse and inspect assets loaded by Discord from a local BetterDiscord panel.
+ * @version 0.3.0
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -24,7 +24,7 @@ class DiscordAssetInspectorPlugin {
         this.started = true;
         window.addEventListener("keydown", this.onShortcut, true);
         const api = globalThis.BdApi;
-        api?.UI?.showToast?.("Discord Asset Inspector enabled · Ctrl/Cmd + Shift + K", {
+        api?.UI?.showToast?.("Asset Inspector ready · Ctrl/Cmd + Shift + K", {
             type: "success",
             timeout: 3500
         });
@@ -105,7 +105,7 @@ class DiscordAssetInspectorPlugin {
 module.exports = DiscordAssetInspectorPlugin;
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.2.0";
+    DAI.VERSION = "0.3.0";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
@@ -121,6 +121,7 @@ var DAI;
     DAI.VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "m4v", "ogv"]);
     DAI.AUDIO_EXTENSIONS = new Set(["mp3", "ogg", "wav", "m4a", "aac", "flac", "opus", "weba"]);
     DAI.FONT_EXTENSIONS = new Set(["woff", "woff2", "ttf", "otf", "eot", "ttc"]);
+    DAI.CODE_EXTENSIONS = new Set(["json", "wasm", "css", "js", "xml", "txt", "webmanifest", "lottie", "rlottie", "vtt", "glsl"]);
     DAI.DISCORD_HOST_SUFFIXES = [
         "discord.com",
         "discordapp.com",
@@ -159,6 +160,20 @@ var DAI;
         return (clean.match(/\.([a-z0-9]+)$/i)?.[1] || "").toLowerCase();
     }
     DAI.getExtension = getExtension;
+    function assetKind(extension) {
+        if (DAI.IMAGE_EXTENSIONS.has(extension))
+            return "image";
+        if (DAI.VIDEO_EXTENSIONS.has(extension))
+            return "video";
+        if (DAI.AUDIO_EXTENSIONS.has(extension))
+            return "audio";
+        if (DAI.FONT_EXTENSIONS.has(extension))
+            return "font";
+        if (DAI.CODE_EXTENSIONS.has(extension))
+            return "code";
+        return "other";
+    }
+    DAI.assetKind = assetKind;
     function normalizeUrl(raw, runtime) {
         let value = String(raw || "").trim().replace(/\\(?:\/|u002f)/gi, "/");
         value = value.replace(/^["'`]|["'`]$/g, "");
@@ -204,6 +219,21 @@ var DAI;
             "(?:(?:\\\\?/?assets\\\\?/)?[a-fA-F0-9_-]{8,}\\.(?:" + ext + "))", "gi");
     }
     DAI.assetRegex = assetRegex;
+    function formatCopy(item, format) {
+        const name = item.name || "asset";
+        if (format === "markdown") {
+            return assetKind(item.extension) === "image" ? `![${name}](${item.url})` : `[${name}](${item.url})`;
+        }
+        if (format === "css")
+            return `url(${JSON.stringify(item.url)})`;
+        if (format === "html") {
+            return assetKind(item.extension) === "image"
+                ? `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(name)}">`
+                : `<a href="${escapeHtml(item.url)}">${escapeHtml(name)}</a>`;
+        }
+        return item.url;
+    }
+    DAI.formatCopy = formatCopy;
     async function copyText(text) {
         if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(text);
@@ -280,6 +310,9 @@ var DAI;
             });
             return true;
         }
+        get(url) {
+            return this.items.get(url);
+        }
         size() {
             return this.items.size;
         }
@@ -291,6 +324,7 @@ var DAI;
                 url: item.url,
                 name: item.name,
                 extension: item.extension,
+                kind: DAI.assetKind(item.extension),
                 sources: [...item.sources],
                 modules: [...item.modules]
             }));
