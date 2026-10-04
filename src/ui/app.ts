@@ -11,7 +11,14 @@ namespace DAI {
     private sourceEl!: HTMLSelectElement;
     private sortEl!: HTMLSelectElement;
     private lazyButton!: HTMLButtonElement;
+    private copyFormatEl!: HTMLSelectElement;
+    private copySelectedButton!: HTMLButtonElement;
+    private selectedCountEl!: HTMLElement;
+    private selectedOnlyButton!: HTMLButtonElement;
     private visible: AssetRecord[] = [];
+    private selected = new Set<string>();
+    private kind: AssetKind | "all" = "all";
+    private selectedOnly = false;
     private abortController = new AbortController();
     private closed = false;
 
@@ -46,11 +53,28 @@ namespace DAI {
             <input data-role="search" placeholder="Search filename, URL, source or module…" autocomplete="off" />
             <select data-role="extension"><option value="">All extensions</option></select>
             <select data-role="source"><option value="">All sources</option></select>
-            <select data-role="sort"><option value="name">Name</option><option value="extension">Extension</option><option value="source">Source count</option></select>
-            <button data-action="copy-all">Copy filtered</button>
+            <select data-role="sort"><option value="name">Name</option><option value="extension">Extension</option><option value="source">Source count</option><option value="module">Module count</option></select>
+          </div>
+          <div class="dai-kinds">
+            <button class="is-active" data-action="kind" data-kind="all">All <b data-kind-count="all">0</b></button>
+            <button data-action="kind" data-kind="image">Images <b data-kind-count="image">0</b></button>
+            <button data-action="kind" data-kind="video">Video <b data-kind-count="video">0</b></button>
+            <button data-action="kind" data-kind="audio">Audio <b data-kind-count="audio">0</b></button>
+            <button data-action="kind" data-kind="font">Fonts <b data-kind-count="font">0</b></button>
+            <button data-action="kind" data-kind="code">Code & data <b data-kind-count="code">0</b></button>
+            <button data-action="kind" data-kind="other">Other <b data-kind-count="other">0</b></button>
+          </div>
+          <div class="dai-bulk">
+            <button data-action="select-visible">Select visible</button>
+            <button data-action="selected-only" aria-pressed="false">Selected only</button>
+            <button data-action="clear-selection">Clear</button>
+            <span class="dai-spacer"></span>
+            <select data-role="copy-format" aria-label="Copy format"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
+            <button data-action="copy-selected" disabled>Copy selected</button>
+            <button data-action="json">Export JSON</button>
           </div>
           <div class="dai-progress"><i data-role="progress"></i></div>
-          <div class="dai-status"><span><strong data-role="count">0</strong> assets</span><span><strong data-role="source-count">0</strong> source types</span><span data-role="status">Ready</span></div>
+          <div class="dai-status"><span><strong data-role="count">0</strong> visible</span><span><strong data-role="selected-count">0</strong> selected</span><span><strong data-role="source-count">0</strong> source types</span><span data-role="status">Ready</span></div>
           <div class="dai-grid" data-role="grid"></div>
         </section>`;
       document.body.appendChild(this.root);
@@ -65,6 +89,10 @@ namespace DAI {
       this.sourceEl = this.must<HTMLSelectElement>("[data-role=source]");
       this.sortEl = this.must<HTMLSelectElement>("[data-role=sort]");
       this.lazyButton = this.must<HTMLButtonElement>("[data-action=lazy]");
+      this.copyFormatEl = this.must<HTMLSelectElement>("[data-role=copy-format]");
+      this.copySelectedButton = this.must<HTMLButtonElement>("[data-action=copy-selected]");
+      this.selectedCountEl = this.must("[data-role=selected-count]");
+      this.selectedOnlyButton = this.must<HTMLButtonElement>("[data-action=selected-only]");
 
       const refresh = debounce(() => this.applyFilters(), 120);
       this.searchEl.addEventListener("input", refresh);
@@ -96,17 +124,51 @@ namespace DAI {
       if (action === "rescan") return void this.rescan();
       if (action === "lazy") return void this.scanLazy();
       if (action === "json") return saveJson(this.registry.serialize(), `discord-assets-${Date.now()}.json`);
-      if (action === "copy-all") {
-        await copyText(this.visible.map(item => item.url).join("\n"));
-        this.setStatus(`Copied ${this.visible.length} URLs.`);
+      if (action === "kind") {
+        this.kind = (button.dataset.kind || "all") as AssetKind | "all";
+        this.root.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
+        this.applyFilters();
+        return;
+      }
+      if (action === "select-visible") {
+        this.visible.forEach(item => this.selected.add(item.url));
+        this.applyFilters();
+        return;
+      }
+      if (action === "clear-selection") {
+        this.selected.clear();
+        this.applyFilters();
+        return;
+      }
+      if (action === "selected-only") {
+        this.selectedOnly = !this.selectedOnly;
+        this.selectedOnlyButton.setAttribute("aria-pressed", String(this.selectedOnly));
+        this.selectedOnlyButton.classList.toggle("is-active", this.selectedOnly);
+        this.applyFilters();
+        return;
+      }
+      if (action === "copy-selected") {
+        const items = this.registry.values().filter(item => this.selected.has(item.url));
+        if (!items.length) return;
+        const format = this.copyFormatEl.value as CopyFormat;
+        await copyText(items.map(item => formatCopy(item, format)).join("\n"));
+        this.setStatus(`Copied ${items.length} selected asset${items.length === 1 ? "" : "s"}.`);
         return;
       }
 
       const card = button.closest<HTMLElement>(".dai-card");
       const url = card?.dataset.url;
       if (!url) return;
+      const item = this.registry.get(url);
+      if (!item) return;
+      if (action === "toggle-select") {
+        if (this.selected.has(url)) this.selected.delete(url);
+        else this.selected.add(url);
+        this.applyFilters();
+        return;
+      }
       if (action === "copy") {
-        await copyText(url);
+        await copyText(formatCopy(item, this.copyFormatEl.value as CopyFormat));
         this.setStatus("URL copied.");
       } else if (action === "open") {
         window.open(url, "_blank", "noopener,noreferrer");
@@ -169,6 +231,8 @@ namespace DAI {
       const sort = this.sortEl.value;
 
       this.visible = this.registry.values().filter(item => {
+        if (this.kind !== "all" && assetKind(item.extension) !== this.kind) return false;
+        if (this.selectedOnly && !this.selected.has(item.url)) return false;
         if (extension && item.extension !== extension) return false;
         if (source && !item.sources.has(source)) return false;
         if (!query) return true;
@@ -181,12 +245,29 @@ namespace DAI {
       this.visible.sort((a, b) => {
         if (sort === "extension") return a.extension.localeCompare(b.extension) || a.name.localeCompare(b.name);
         if (sort === "source") return b.sources.size - a.sources.size || a.name.localeCompare(b.name);
+        if (sort === "module") return b.modules.size - a.modules.size || a.name.localeCompare(b.name);
         return a.name.localeCompare(b.name);
       });
 
       this.renderCards();
+      this.renderKindCounts();
       this.countEl.textContent = String(this.visible.length);
+      this.selectedCountEl.textContent = String(this.selected.size);
       this.sourceCountEl.textContent = String(new Set(this.registry.values().flatMap(item => [...item.sources])).size);
+      this.copySelectedButton.disabled = this.selected.size === 0;
+      this.copySelectedButton.textContent = this.selected.size ? `Copy selected (${this.selected.size})` : "Copy selected";
+    }
+
+    private renderKindCounts(): void {
+      const counts: Record<AssetKind | "all", number> = { all: 0, image: 0, video: 0, audio: 0, font: 0, code: 0, other: 0 };
+      for (const item of this.registry.values()) {
+        counts.all++;
+        counts[assetKind(item.extension)]++;
+      }
+      for (const [kind, count] of Object.entries(counts)) {
+        const element = this.root.querySelector<HTMLElement>(`[data-kind-count="${kind}"]`);
+        if (element) element.textContent = String(count);
+      }
     }
 
     private renderCards(): void {
@@ -198,10 +279,14 @@ namespace DAI {
       const limit = 350;
       const html = this.visible.slice(0, limit).map(item => {
         const preview = this.previewHtml(item);
+        const selected = this.selected.has(item.url);
+        const kind = assetKind(item.extension);
         const chips = [...item.sources].slice(0, 4).map(source => `<span class="dai-chip">${escapeHtml(source)}</span>`).join("");
-        return `<article class="dai-card" data-url="${escapeHtml(item.url)}">
+        return `<article class="dai-card${selected ? " is-selected" : ""}" data-url="${escapeHtml(item.url)}">
+          <button class="dai-select" data-action="toggle-select" aria-label="${selected ? "Deselect" : "Select"}" aria-pressed="${selected}">${selected ? "✓" : ""}</button>
           <div class="dai-preview">${preview}</div>
           <div class="dai-body">
+            <div class="dai-card-meta"><span>${escapeHtml(kind)}</span><span>${escapeHtml(item.extension || "file")}</span></div>
             <div class="dai-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
             <div class="dai-url" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</div>
             <div class="dai-chips">${chips}</div>
@@ -217,9 +302,10 @@ namespace DAI {
       const url = escapeHtml(item.url);
       if (IMAGE_EXTENSIONS.has(item.extension)) return `<img loading="lazy" decoding="async" src="${url}" alt="" />`;
       if (VIDEO_EXTENSIONS.has(item.extension)) return `<video preload="metadata" muted src="${url}"></video>`;
-      if (AUDIO_EXTENSIONS.has(item.extension)) return `<div class="dai-filetype">AUDIO</div>`;
-      if (FONT_EXTENSIONS.has(item.extension)) return `<div class="dai-filetype">FONT</div>`;
-      return `<div class="dai-filetype">${escapeHtml(item.extension || "FILE")}</div>`;
+      if (AUDIO_EXTENSIONS.has(item.extension)) return `<div class="dai-filetype"><b>WAVE</b><span>Audio</span></div>`;
+      if (FONT_EXTENSIONS.has(item.extension)) return `<div class="dai-fonttype"><b>Aa</b><span>Font</span></div>`;
+      if (CODE_EXTENSIONS.has(item.extension)) return `<div class="dai-filetype"><b>&lt;/&gt;</b><span>${escapeHtml(item.extension || "Code")}</span></div>`;
+      return `<div class="dai-filetype"><b>FILE</b><span>${escapeHtml(item.extension || "Other")}</span></div>`;
     }
 
     private async downloadAsset(url: string): Promise<void> {
