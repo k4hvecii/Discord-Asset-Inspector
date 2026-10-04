@@ -79,7 +79,6 @@ namespace DAI {
             <span class="dai-spacer"></span>
             <select data-role="copy-format" aria-label="Kopyalama biçimi"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
             <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
-            <button data-action="json">JSON dışa aktar</button>
           </div>
           <div class="dai-progress"><i data-role="progress"></i></div>
           <div class="dai-status"><span><strong data-role="count">0</strong> görünür</span><span><strong data-role="selected-count">0</strong> seçili</span><span><strong data-role="source-count">0</strong> kaynak türü</span><span data-role="status">Hazır</span></div>
@@ -384,7 +383,7 @@ namespace DAI {
     }
 
     private applyCriticalLayoutFallback(): void {
-      if (this.layoutRepairApplied) return;
+      const firstRepair = !this.layoutRepairApplied;
       this.layoutRepairApplied = true;
 
       Object.assign(this.grid.style, {
@@ -429,7 +428,7 @@ namespace DAI {
         }
       });
 
-      this.setStatus("Görünüm koruması etkinleştirildi.");
+      if (firstRepair) this.setStatus("Görünüm koruması etkinleştirildi.");
     }
 
     private urlHost(url: string): string {
