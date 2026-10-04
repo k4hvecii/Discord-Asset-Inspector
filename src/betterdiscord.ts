@@ -2,7 +2,7 @@
  * @name DiscordAssetInspector
  * @author K4hveci
  * @description Discord tarafından yüklenen varlıkları yerel BetterDiscord panelinden inceleyin.
- * @version 0.5.0
+ * @version 0.5.1
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
