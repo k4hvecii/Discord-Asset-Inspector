@@ -132,6 +132,28 @@ namespace DAI {
     }
   }
 
+  export function isLikelyNoiseAssetUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url, location.href);
+      const path = decodeURIComponent(parsed.pathname).toLowerCase();
+      const name = (path.split("/").pop() || "").split(".")[0];
+
+      if (isUserContentAssetUrl(parsed.href)) return true;
+
+      const unicodeEmojiName =
+        /^(?:emoji[_-]?)?(?:u[_+-]?)?[0-9a-f]{4,6}(?:[-_][0-9a-f]{2,6}){0,7}$/i.test(name);
+      if (unicodeEmojiName) return true;
+
+      return (
+        /(?:^|[-_.])(twemoji|emoji-sprite|emoji_sprite|emoji-pack|emoji_pack)(?:[-_.]|$)/i.test(name) ||
+        path.includes("/embed/avatars/") ||
+        path.includes("/default-avatars/")
+      );
+    } catch {
+      return false;
+    }
+  }
+
   export function isLikelyClientAssetUrl(url: string): boolean {
     if (url.startsWith("data:") || url.startsWith("blob:")) return false;
 
@@ -157,9 +179,9 @@ namespace DAI {
     includeUserContent: boolean
   ): boolean {
     if (includeUserContent) return true;
-    if (isUserContentAssetUrl(url)) return false;
+    if (isLikelyNoiseAssetUrl(url)) return false;
 
-    const runtimeOnlySources = new Set<AssetSource>(["dom", "performance", "cache"]);
+    const runtimeOnlySources = new Set<AssetSource>(["dom", "performance", "cache", "css"]);
     if (!runtimeOnlySources.has(source)) return true;
 
     return isLikelyClientAssetUrl(url);
