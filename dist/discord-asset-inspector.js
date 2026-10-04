@@ -554,39 +554,39 @@ var DAI;
         <div class="dai-backdrop"></div>
         <section class="dai-panel" role="dialog" aria-modal="true" aria-label="Discord Asset Inspector">
           <header class="dai-head">
-            <div class="dai-brand"><div class="dai-title">Discord Asset Inspector</div><div class="dai-sub">v${DAI.VERSION} · local developer utility</div></div>
+            <div class="dai-brand"><div class="dai-title">Discord Asset Inspector</div><div class="dai-sub">v${DAI.VERSION} · yerel varlık inceleme aracı</div></div>
             <div class="dai-spacer"></div>
-            <button class="dai-secondary" data-action="rescan">Rescan</button>
-            <button class="dai-primary" data-action="lazy">Scan lazy resources</button>
-            <button class="dai-secondary" data-action="json">Export JSON</button>
-            <button class="dai-close" data-action="close" aria-label="Close">×</button>
+            <button class="dai-secondary" data-action="rescan">Yeniden Tara</button>
+            <button class="dai-primary" data-action="lazy">Ek kaynakları tara</button>
+            <button class="dai-secondary" data-action="json">JSON dışa aktar</button>
+            <button class="dai-close" data-action="close" aria-label="Kapat">×</button>
           </header>
           <div class="dai-tools">
-            <input data-role="search" placeholder="Search filename, URL, source or module…" autocomplete="off" />
-            <select data-role="extension"><option value="">All extensions</option></select>
-            <select data-role="source"><option value="">All sources</option></select>
-            <select data-role="sort"><option value="name">Name</option><option value="extension">Extension</option><option value="source">Source count</option><option value="module">Module count</option></select>
+            <input data-role="search" placeholder="Dosya adı, URL, kaynak veya modül ara…" autocomplete="off" />
+            <select data-role="extension"><option value="">Tüm uzantılar</option></select>
+            <select data-role="source"><option value="">Tüm kaynaklar</option></select>
+            <select data-role="sort"><option value="name">Ada göre</option><option value="extension">Uzantıya göre</option><option value="source">Kaynak sayısı</option><option value="module">Modül sayısı</option></select>
           </div>
           <div class="dai-kinds">
-            <button class="is-active" data-action="kind" data-kind="all">All <b data-kind-count="all">0</b></button>
-            <button data-action="kind" data-kind="image">Images <b data-kind-count="image">0</b></button>
-            <button data-action="kind" data-kind="video">Video <b data-kind-count="video">0</b></button>
-            <button data-action="kind" data-kind="audio">Audio <b data-kind-count="audio">0</b></button>
-            <button data-action="kind" data-kind="font">Fonts <b data-kind-count="font">0</b></button>
-            <button data-action="kind" data-kind="code">Code & data <b data-kind-count="code">0</b></button>
-            <button data-action="kind" data-kind="other">Other <b data-kind-count="other">0</b></button>
+            <button class="is-active" data-action="kind" data-kind="all">Tümü <b data-kind-count="all">0</b></button>
+            <button data-action="kind" data-kind="image">Görseller <b data-kind-count="image">0</b></button>
+            <button data-action="kind" data-kind="video">Videolar <b data-kind-count="video">0</b></button>
+            <button data-action="kind" data-kind="audio">Sesler <b data-kind-count="audio">0</b></button>
+            <button data-action="kind" data-kind="font">Yazı tipleri <b data-kind-count="font">0</b></button>
+            <button data-action="kind" data-kind="code">Kod & veri <b data-kind-count="code">0</b></button>
+            <button data-action="kind" data-kind="other">Diğer <b data-kind-count="other">0</b></button>
           </div>
           <div class="dai-bulk">
-            <button data-action="select-visible">Select visible</button>
-            <button data-action="selected-only" aria-pressed="false">Selected only</button>
-            <button data-action="clear-selection">Clear</button>
+            <button data-action="select-visible">Görünenleri seç</button>
+            <button data-action="selected-only" aria-pressed="false">Yalnız seçilenler</button>
+            <button data-action="clear-selection">Temizle</button>
             <span class="dai-spacer"></span>
-            <select data-role="copy-format" aria-label="Copy format"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
-            <button data-action="copy-selected" disabled>Copy selected</button>
+            <select data-role="copy-format" aria-label="Kopyalama biçimi"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
+            <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
             <button data-action="json">Export JSON</button>
           </div>
           <div class="dai-progress"><i data-role="progress"></i></div>
-          <div class="dai-status"><span><strong data-role="count">0</strong> visible</span><span><strong data-role="selected-count">0</strong> selected</span><span><strong data-role="source-count">0</strong> source types</span><span data-role="status">Ready</span></div>
+          <div class="dai-status"><span><strong data-role="count">0</strong> görünür</span><span><strong data-role="selected-count">0</strong> seçili</span><span><strong data-role="source-count">0</strong> kaynak türü</span><span data-role="status">Hazır</span></div>
           <div class="dai-grid" data-role="grid"></div>
         </section>`;
             document.body.appendChild(this.root);
@@ -616,7 +616,7 @@ var DAI;
         must(selector) {
             const element = this.root.querySelector(selector);
             if (!element)
-                throw new Error("Missing UI element: " + selector);
+                throw new Error("Eksik arayüz öğesi: " + selector);
             return element;
         }
         async handleClick(event) {
@@ -661,7 +661,7 @@ var DAI;
                     return;
                 const format = this.copyFormatEl.value;
                 await DAI.copyText(items.map(item => DAI.formatCopy(item, format)).join("\n"));
-                this.setStatus(`Copied ${items.length} selected asset${items.length === 1 ? "" : "s"}.`);
+                this.setStatus(`${items.length} seçili varlık kopyalandı.`);
                 return;
             }
             const card = button.closest(".dai-card");
@@ -681,7 +681,7 @@ var DAI;
             }
             if (action === "copy") {
                 await DAI.copyText(DAI.formatCopy(item, this.copyFormatEl.value));
-                this.setStatus("URL copied.");
+                this.setStatus("Kopyalandı.");
             }
             else if (action === "open") {
                 window.open(url, "_blank", "noopener,noreferrer");
@@ -693,7 +693,7 @@ var DAI;
         async rescan() {
             if (this.closed)
                 return;
-            this.setStatus("Scanning loaded resources…");
+            this.setStatus("Yüklü kaynaklar taranıyor…");
             this.webpack.connect();
             const reports = [
                 this.webpack.scanLoadedModules(),
@@ -705,22 +705,22 @@ var DAI;
             const added = reports.reduce((sum, report) => sum + report.added, 0);
             this.rebuildFilters();
             this.applyFilters();
-            this.setStatus(`Scan complete · ${added} new asset${added === 1 ? "" : "s"}.`);
+            this.setStatus(`Tarama tamamlandı · ${added} yeni varlık.`);
         }
         async scanLazy() {
             if (this.closed || this.lazyButton.disabled)
                 return;
             this.lazyButton.disabled = true;
-            this.setStatus("Scanning lazy Discord resources…");
+            this.setStatus("Ek Discord kaynakları taranıyor…");
             this.setProgress(0);
             try {
                 const report = await this.webpack.scanLazyResources(this.abortController.signal, (done, total) => {
                     this.setProgress(total ? (done / total) * 100 : 0);
-                    this.setStatus(`Lazy scan ${done}/${total}…`);
+                    this.setStatus(`Ek tarama ${done}/${total}…`);
                 });
                 this.rebuildFilters();
                 this.applyFilters();
-                this.setStatus(`Lazy scan complete · ${report.added} new assets · ${report.failedResources || 0} failed.`);
+                this.setStatus(`Ek tarama tamamlandı · ${report.added} yeni varlık · ${report.failedResources || 0} başarısız.`);
             }
             finally {
                 this.setProgress(0);
@@ -732,8 +732,8 @@ var DAI;
             const source = this.sourceEl.value;
             const extensions = [...new Set(this.registry.values().map(item => item.extension).filter(Boolean))].sort();
             const sources = [...new Set(this.registry.values().flatMap(item => [...item.sources]))].sort();
-            this.extensionEl.innerHTML = `<option value="">All extensions</option>${extensions.map(x => `<option value="${DAI.escapeHtml(x)}">${DAI.escapeHtml(x.toUpperCase())}</option>`).join("")}`;
-            this.sourceEl.innerHTML = `<option value="">All sources</option>${sources.map(x => `<option value="${DAI.escapeHtml(x)}">${DAI.escapeHtml(x)}</option>`).join("")}`;
+            this.extensionEl.innerHTML = `<option value="">Tüm uzantılar</option>${extensions.map(x => `<option value="${DAI.escapeHtml(x)}">${DAI.escapeHtml(x.toUpperCase())}</option>`).join("")}`;
+            this.sourceEl.innerHTML = `<option value="">Tüm kaynaklar</option>${sources.map(x => `<option value="${DAI.escapeHtml(x)}">${DAI.escapeHtml(DAI.sourceLabel(x))}</option>`).join("")}`;
             if (extensions.includes(extension))
                 this.extensionEl.value = extension;
             if (sources.includes(source))
@@ -775,7 +775,7 @@ var DAI;
             this.selectedCountEl.textContent = String(this.selected.size);
             this.sourceCountEl.textContent = String(new Set(this.registry.values().flatMap(item => [...item.sources])).size);
             this.copySelectedButton.disabled = this.selected.size === 0;
-            this.copySelectedButton.textContent = this.selected.size ? `Copy selected (${this.selected.size})` : "Copy selected";
+            this.copySelectedButton.textContent = this.selected.size ? `Seçilenleri kopyala (${this.selected.size})` : "Seçilenleri kopyala";
         }
         renderKindCounts() {
             const counts = { all: 0, image: 0, video: 0, audio: 0, font: 0, code: 0, other: 0 };
@@ -791,7 +791,7 @@ var DAI;
         }
         renderCards() {
             if (!this.visible.length) {
-                this.grid.innerHTML = `<div class="dai-empty">No assets match the current filters.</div>`;
+                this.grid.innerHTML = `<div class="dai-empty">Geçerli filtrelerle eşleşen varlık bulunamadı.</div>`;
                 return;
             }
             const limit = 350;
@@ -799,20 +799,20 @@ var DAI;
                 const preview = this.previewHtml(item);
                 const selected = this.selected.has(item.url);
                 const kind = DAI.assetKind(item.extension);
-                const chips = [...item.sources].slice(0, 4).map(source => `<span class="dai-chip">${DAI.escapeHtml(source)}</span>`).join("");
+                const chips = [...item.sources].slice(0, 4).map(source => `<span class="dai-chip">${DAI.escapeHtml(DAI.sourceLabel(source))}</span>`).join("");
                 return `<article class="dai-card${selected ? " is-selected" : ""}" data-url="${DAI.escapeHtml(item.url)}">
-          <button class="dai-select" data-action="toggle-select" aria-label="${selected ? "Deselect" : "Select"}" aria-pressed="${selected}">${selected ? "✓" : ""}</button>
+          <button class="dai-select" data-action="toggle-select" aria-label="${selected ? "Seçimi kaldır" : "Seç"}" aria-pressed="${selected}">${selected ? "✓" : ""}</button>
           <div class="dai-preview">${preview}</div>
           <div class="dai-body">
-            <div class="dai-card-meta"><span>${DAI.escapeHtml(kind)}</span><span>${DAI.escapeHtml(item.extension || "file")}</span></div>
+            <div class="dai-card-meta"><span>${DAI.escapeHtml(DAI.assetKindLabel(kind))}</span><span>${DAI.escapeHtml(item.extension || "file")}</span></div>
             <div class="dai-name" title="${DAI.escapeHtml(item.name)}">${DAI.escapeHtml(item.name)}</div>
             <div class="dai-url" title="${DAI.escapeHtml(item.url)}">${DAI.escapeHtml(item.url)}</div>
             <div class="dai-chips">${chips}</div>
-            <div class="dai-actions"><button data-action="copy">Copy</button><button data-action="open">Open</button><button data-action="download">Save</button></div>
+            <div class="dai-actions"><button data-action="copy">Kopyala</button><button data-action="open">Aç</button><button data-action="download">İndir</button></div>
           </div>
         </article>`;
             }).join("");
-            this.grid.innerHTML = html + (this.visible.length > limit ? `<div class="dai-empty">Showing first ${limit} of ${this.visible.length} results. Narrow the filters to inspect more.</div>` : "");
+            this.grid.innerHTML = html + (this.visible.length > limit ? `<div class="dai-empty">İlk ${limit} / ${this.visible.length} sonuç gösteriliyor. Daha fazlası için filtreleri daralt.</div>` : "");
         }
         previewHtml(item) {
             const url = DAI.escapeHtml(item.url);
@@ -821,12 +821,12 @@ var DAI;
             if (DAI.VIDEO_EXTENSIONS.has(item.extension))
                 return `<video preload="metadata" muted src="${url}"></video>`;
             if (DAI.AUDIO_EXTENSIONS.has(item.extension))
-                return `<div class="dai-filetype"><b>WAVE</b><span>Audio</span></div>`;
+                return `<div class="dai-filetype"><b>WAVE</b><span>Ses</span></div>`;
             if (DAI.FONT_EXTENSIONS.has(item.extension))
-                return `<div class="dai-fonttype"><b>Aa</b><span>Font</span></div>`;
+                return `<div class="dai-fonttype"><b>Aa</b><span>Yazı tipi</span></div>`;
             if (DAI.CODE_EXTENSIONS.has(item.extension))
-                return `<div class="dai-filetype"><b>&lt;/&gt;</b><span>${DAI.escapeHtml(item.extension || "Code")}</span></div>`;
-            return `<div class="dai-filetype"><b>FILE</b><span>${DAI.escapeHtml(item.extension || "Other")}</span></div>`;
+                return `<div class="dai-filetype"><b>&lt;/&gt;</b><span>${DAI.escapeHtml(item.extension || "Kod")}</span></div>`;
+            return `<div class="dai-filetype"><b>FILE</b><span>${DAI.escapeHtml(item.extension || "Diğer")}</span></div>`;
         }
         async downloadAsset(url) {
             try {
@@ -834,7 +834,7 @@ var DAI;
                 if (!response.ok)
                     throw new Error(String(response.status));
                 DAI.downloadBlob(await response.blob(), DAI.fileName(url));
-                this.setStatus("Download prepared.");
+                this.setStatus("İndirme hazırlandı.");
             }
             catch {
                 if (!this.closed)
