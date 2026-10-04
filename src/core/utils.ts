@@ -27,6 +27,15 @@ namespace DAI {
     return (clean.match(/\.([a-z0-9]+)$/i)?.[1] || "").toLowerCase();
   }
 
+  export function assetKind(extension: string): AssetKind {
+    if (IMAGE_EXTENSIONS.has(extension)) return "image";
+    if (VIDEO_EXTENSIONS.has(extension)) return "video";
+    if (AUDIO_EXTENSIONS.has(extension)) return "audio";
+    if (FONT_EXTENSIONS.has(extension)) return "font";
+    if (CODE_EXTENSIONS.has(extension)) return "code";
+    return "other";
+  }
+
   export function normalizeUrl(raw: string, runtime?: WebpackRuntime | null): string | null {
     let value = String(raw || "").trim().replace(/\\(?:\/|u002f)/gi, "/");
     value = value.replace(/^["'`]|["'`]$/g, "");
@@ -63,6 +72,20 @@ namespace DAI {
       "(?:(?:\\\\?/?assets\\\\?/)?[a-fA-F0-9_-]{8,}\\.(?:" + ext + "))",
       "gi"
     );
+  }
+
+  export function formatCopy(item: AssetRecord, format: CopyFormat): string {
+    const name = item.name || "asset";
+    if (format === "markdown") {
+      return assetKind(item.extension) === "image" ? `![${name}](${item.url})` : `[${name}](${item.url})`;
+    }
+    if (format === "css") return `url(${JSON.stringify(item.url)})`;
+    if (format === "html") {
+      return assetKind(item.extension) === "image"
+        ? `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(name)}">`
+        : `<a href="${escapeHtml(item.url)}">${escapeHtml(name)}</a>`;
+    }
+    return item.url;
   }
 
   export async function copyText(text: string): Promise<void> {
