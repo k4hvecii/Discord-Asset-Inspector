@@ -1,5 +1,7 @@
 namespace DAI {
   export const STYLES = `
+:host { all: initial !important; }
+
 .dai-root {
   position: fixed;
   inset: 0;
