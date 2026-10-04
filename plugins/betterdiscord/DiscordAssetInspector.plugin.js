@@ -795,7 +795,7 @@ var DAI;
             <span class="dai-spacer"></span>
             <select data-role="copy-format" aria-label="Kopyalama biçimi"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
             <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
-            <button data-action="json">Export JSON</button>
+            <button data-action="json">JSON dışa aktar</button>
           </div>
           <div class="dai-progress"><i data-role="progress"></i></div>
           <div class="dai-status"><span><strong data-role="count">0</strong> görünür</span><span><strong data-role="selected-count">0</strong> seçili</span><span><strong data-role="source-count">0</strong> kaynak türü</span><span data-role="status">Hazır</span></div>
@@ -1011,20 +1011,49 @@ var DAI;
                 const preview = this.previewHtml(item);
                 const selected = this.selected.has(item.url);
                 const kind = DAI.assetKind(item.extension);
-                const chips = [...item.sources].slice(0, 4).map(source => `<span class="dai-chip">${DAI.escapeHtml(DAI.sourceLabel(source))}</span>`).join("");
+                const host = this.urlHost(item.url);
+                const chips = [...item.sources].slice(0, 2).map(source => `<span class="dai-chip">${DAI.escapeHtml(DAI.sourceLabel(source))}</span>`).join("");
+                const extraSources = Math.max(0, item.sources.size - 2);
                 return `<article class="dai-card${selected ? " is-selected" : ""}" data-url="${DAI.escapeHtml(item.url)}">
-          <button class="dai-select" data-action="toggle-select" aria-label="${selected ? "Seçimi kaldır" : "Seç"}" aria-pressed="${selected}">${selected ? "✓" : ""}</button>
-          <div class="dai-preview">${preview}</div>
+          <div class="dai-preview">
+            ${preview}
+            <div class="dai-preview-top">
+              <div class="dai-badges">
+                <span class="dai-kind-badge">${DAI.escapeHtml(DAI.assetKindLabel(kind))}</span>
+                <span class="dai-ext-badge">${DAI.escapeHtml((item.extension || "dosya").toUpperCase())}</span>
+              </div>
+              <button class="dai-select" data-action="toggle-select" aria-label="${selected ? "Seçimi kaldır" : "Seç"}" aria-pressed="${selected}">
+                <span>${selected ? "✓" : ""}</span>
+              </button>
+            </div>
+          </div>
           <div class="dai-body">
-            <div class="dai-card-meta"><span>${DAI.escapeHtml(DAI.assetKindLabel(kind))}</span><span>${DAI.escapeHtml(item.extension || "file")}</span></div>
             <div class="dai-name" title="${DAI.escapeHtml(item.name)}">${DAI.escapeHtml(item.name)}</div>
-            <div class="dai-url" title="${DAI.escapeHtml(item.url)}">${DAI.escapeHtml(item.url)}</div>
-            <div class="dai-chips">${chips}</div>
-            <div class="dai-actions"><button data-action="copy">Kopyala</button><button data-action="open">Aç</button><button data-action="download">İndir</button></div>
+            <div class="dai-location" title="${DAI.escapeHtml(item.url)}">
+              <span class="dai-host">${DAI.escapeHtml(host)}</span>
+              <span class="dai-dot">•</span>
+              <span>${item.modules.size ? `${item.modules.size} modül` : "modül yok"}</span>
+            </div>
+            <div class="dai-footer">
+              <div class="dai-chips">${chips}${extraSources ? `<span class="dai-chip">+${extraSources}</span>` : ""}</div>
+              <div class="dai-actions">
+                <button data-action="copy" title="Kopyala" aria-label="Kopyala">Kopyala</button>
+                <button data-action="open" title="Yeni sekmede aç" aria-label="Aç">Aç</button>
+                <button class="dai-download" data-action="download" title="İndir" aria-label="İndir">İndir</button>
+              </div>
+            </div>
           </div>
         </article>`;
             }).join("");
             this.grid.innerHTML = html + (this.visible.length > limit ? `<div class="dai-empty">İlk ${limit} / ${this.visible.length} sonuç gösteriliyor. Daha fazlası için filtreleri daralt.</div>` : "");
+        }
+        urlHost(url) {
+            try {
+                return new URL(url, location.href).hostname.replace(/^cdn\./, "");
+            }
+            catch {
+                return "yerel kaynak";
+            }
         }
         previewHtml(item) {
             const url = DAI.escapeHtml(item.url);
