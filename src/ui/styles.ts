@@ -198,6 +198,16 @@ namespace DAI {
   color: #f2c26f;
 }
 
+.dai-root .dai-raw-toggle {
+  color: #8f97a4;
+}
+
+.dai-root .dai-raw-toggle.is-active {
+  border-color: rgba(88,101,242,.42);
+  background: rgba(88,101,242,.12);
+  color: #cfd3ff;
+}
+
 .dai-root .dai-bulk select {
   width: 126px;
   height: 31px;
