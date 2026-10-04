@@ -61,8 +61,12 @@ namespace DAI {
           imageAssetCount >= 8 &&
           /(default.?avatar|avatar.?asset|default.?profile)/i.test(lower);
 
+        const denseImageCatalog =
+          !this.registry.isUserContentEnabled() &&
+          imageAssetCount >= 128;
+
         for (const raw of discoveredAssets) {
-          if (noisyEmojiModule || noisyAvatarModule) continue;
+          if (noisyEmojiModule || noisyAvatarModule || denseImageCatalog) continue;
           this.registry.add(raw, "webpack", id);
         }
 
