@@ -1,9 +1,19 @@
 namespace DAI {
   export const STYLES = `
-:host { all: initial !important; }
+:host {
+  all: initial !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483646 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+}
 
 .dai-root {
   position: fixed;
+  pointer-events: auto;
   inset: 0;
   z-index: 2147483646;
   color: #e7e9ee;
@@ -459,6 +469,29 @@ namespace DAI {
   padding: 70px 20px;
   color: #747d8b;
   text-align: center;
+}
+
+.dai-load-more {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  padding: 18px 0 8px;
+}
+
+.dai-load-more button {
+  min-width: 180px;
+  padding: 9px 14px;
+}
+
+.dai-load-more button span {
+  color: #8f98ff;
+  margin-left: 4px;
+}
+
+.dai-load-more small {
+  color: #68717f;
+  font-size: 9px;
 }
 
 @media (max-width: 1000px) {
