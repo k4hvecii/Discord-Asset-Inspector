@@ -15,6 +15,7 @@ class DiscordAssetInspectorPlugin {
   private launcher: HTMLButtonElement | null = null;
   private launcherObserver: MutationObserver | null = null;
   private launcherStyle: HTMLStyleElement | null = null;
+  private launcherMountTimer = 0;
 
   private readonly onShortcut = (event: KeyboardEvent) => {
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "KeyK") {
@@ -107,13 +108,18 @@ class DiscordAssetInspectorPlugin {
     this.launcherStyle = style;
 
     this.mountLauncher();
-    this.launcherObserver = new MutationObserver(() => this.mountLauncher());
+    this.launcherObserver = new MutationObserver(() => {
+      window.clearTimeout(this.launcherMountTimer);
+      this.launcherMountTimer = window.setTimeout(() => this.mountLauncher(), 180);
+    });
     this.launcherObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   private stopLauncher(): void {
     this.launcherObserver?.disconnect();
     this.launcherObserver = null;
+    window.clearTimeout(this.launcherMountTimer);
+    this.launcherMountTimer = 0;
     this.launcher?.remove();
     this.launcher = null;
     this.launcherStyle?.remove();
