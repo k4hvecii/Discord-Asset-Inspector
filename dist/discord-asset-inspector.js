@@ -1,7 +1,7 @@
 "use strict";
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.4.1";
+    DAI.VERSION = "0.4.2";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
@@ -401,8 +401,10 @@ var DAI;
                 const noisyAvatarModule = !this.registry.isUserContentEnabled() &&
                     imageAssetCount >= 8 &&
                     /(default.?avatar|avatar.?asset|default.?profile)/i.test(lower);
+                const denseImageCatalog = !this.registry.isUserContentEnabled() &&
+                    imageAssetCount >= 128;
                 for (const raw of discoveredAssets) {
-                    if (noisyEmojiModule || noisyAvatarModule)
+                    if (noisyEmojiModule || noisyAvatarModule || denseImageCatalog)
                         continue;
                     this.registry.add(raw, "webpack", id);
                 }
@@ -581,6 +583,8 @@ var DAI;
 var DAI;
 (function (DAI) {
     DAI.STYLES = `
+:host { all: initial !important; }
+
 .dai-root {
   position: fixed;
   inset: 0;
