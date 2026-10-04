@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1 - 2026-10-04
+
+- Added a clean-mode filter for anonymous one-file hashed SVG Webpack modules.
+- Default view now hides large Discord emoji/flag/illustration asset catalogs that are not referenced by DOM or CSS.
+- Added **Ham paket varlıkları** toggle to explicitly reveal those raw bundle assets when needed.
+- Scan status now reports how many noisy assets were filtered.
+- Kept corroborated DOM/CSS client assets visible even when raw bundle assets are hidden.
+
+
 ## 0.5.0 - 2026-10-04
 
 - Rebuilt normal scanning around a clean registry on every rescan.
