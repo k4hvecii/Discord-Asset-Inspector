@@ -24,6 +24,10 @@ namespace DAI {
       return this.includeUserContent;
     }
 
+    clear(): void {
+      this.items.clear();
+    }
+
     setRuntime(runtime: WebpackRuntime | null): void {
       this.runtime = runtime;
     }
