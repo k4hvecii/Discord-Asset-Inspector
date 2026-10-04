@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2 - 2026-10-04
+
+- Isolated the inspector UI inside Shadow DOM so Discord and BetterDiscord theme CSS cannot break card layouts.
+- Added a host-style reset for stronger theme compatibility.
+- Added Webpack module heuristics for default emoji packs and avatar catalogs.
+- Large image-only asset catalogs are skipped by default to reduce thousands of irrelevant emoji assets.
+- User-content mode can still expose broader runtime content when explicitly enabled.
+
+
 ## 0.4.1 - 2026-10-04
 
 - Added client-only filtering as the default scan mode.
