@@ -1,6 +1,7 @@
 namespace DAI {
   export class InspectorApp {
     private root!: HTMLDivElement;
+    private surface!: ShadowRoot;
     private grid!: HTMLDivElement;
     private countEl!: HTMLElement;
     private sourceCountEl!: HTMLElement;
@@ -38,8 +39,10 @@ namespace DAI {
       document.getElementById(ROOT_ID)?.remove();
       this.root = document.createElement("div");
       this.root.id = ROOT_ID;
-      this.root.innerHTML = `
+      this.surface = this.root.attachShadow({ mode: "open" });
+      this.surface.innerHTML = `
         <style>${STYLES}</style>
+        <div class="dai-root">
         <div class="dai-backdrop"></div>
         <section class="dai-panel" role="dialog" aria-modal="true" aria-label="Discord Asset Inspector">
           <header class="dai-head">
@@ -78,7 +81,8 @@ namespace DAI {
           <div class="dai-progress"><i data-role="progress"></i></div>
           <div class="dai-status"><span><strong data-role="count">0</strong> görünür</span><span><strong data-role="selected-count">0</strong> seçili</span><span><strong data-role="source-count">0</strong> kaynak türü</span><span data-role="status">Hazır</span></div>
           <div class="dai-grid" data-role="grid"></div>
-        </section>`;
+        </section>
+        </div>`;
       document.body.appendChild(this.root);
 
       this.grid = this.must<HTMLDivElement>("[data-role=grid]");
@@ -103,13 +107,13 @@ namespace DAI {
       this.sourceEl.addEventListener("change", () => this.applyFilters());
       this.sortEl.addEventListener("change", () => this.applyFilters());
 
-      this.root.addEventListener("click", event => this.handleClick(event));
-      this.root.querySelector(".dai-backdrop")?.addEventListener("click", () => this.close());
+      this.surface.addEventListener("click", event => this.handleClick(event));
+      this.surface.querySelector(".dai-backdrop")?.addEventListener("click", () => this.close());
       document.addEventListener("keydown", this.onKeydown, true);
     }
 
     private must<T extends Element = HTMLElement>(selector: string): T {
-      const element = this.root.querySelector(selector);
+      const element = this.surface.querySelector(selector);
       if (!element) throw new Error("Eksik arayüz öğesi: " + selector);
       return element as T;
     }
@@ -129,7 +133,7 @@ namespace DAI {
       if (action === "json") return saveJson(this.registry.serialize(), `discord-assets-${Date.now()}.json`);
       if (action === "kind") {
         this.kind = (button.dataset.kind || "all") as AssetKind | "all";
-        this.root.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
+        this.surface.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
         this.applyFilters();
         return;
       }
@@ -288,7 +292,7 @@ namespace DAI {
         counts[assetKind(item.extension)]++;
       }
       for (const [kind, count] of Object.entries(counts)) {
-        const element = this.root.querySelector<HTMLElement>(`[data-kind-count="${kind}"]`);
+        const element = this.surface.querySelector<HTMLElement>(`[data-kind-count="${kind}"]`);
         if (element) element.textContent = String(count);
       }
     }
