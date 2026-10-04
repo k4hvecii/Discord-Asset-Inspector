@@ -1,8 +1,8 @@
 /**
  * @name DiscordAssetInspector
  * @author K4hveci
- * @description Browse and inspect assets loaded by Discord from a local BetterDiscord panel.
- * @version 0.3.0
+ * @description Discord tarafından yüklenen varlıkları yerel BetterDiscord panelinden inceleyin.
+ * @version 0.3.1
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -27,7 +27,7 @@ class DiscordAssetInspectorPlugin {
     window.addEventListener("keydown", this.onShortcut, true);
 
     const api = (globalThis as any).BdApi;
-    api?.UI?.showToast?.("Asset Inspector ready · Ctrl/Cmd + Shift + K", {
+    api?.UI?.showToast?.("Asset Inspector hazır · Ctrl/Cmd + Shift + K", {
       type: "success",
       timeout: 3500
     });
@@ -72,7 +72,7 @@ class DiscordAssetInspectorPlugin {
 
     const note = document.createElement("div");
     note.textContent =
-      "Open the local asset inspector from here or use Ctrl/Cmd + Shift + K anywhere in Discord. Disabling the plugin removes the shortcut and closes the inspector.";
+      "Varlık inceleyiciyi buradan açabilir veya Discord içinde Ctrl/Cmd + Shift + K kısayolunu kullanabilirsin. Eklentiyi kapatmak kısayolu kaldırır ve açık paneli kapatır.";
     note.style.opacity = "0.72";
     note.style.lineHeight = "1.5";
 
@@ -82,7 +82,7 @@ class DiscordAssetInspectorPlugin {
     actions.style.flexWrap = "wrap";
 
     const openButton = document.createElement("button");
-    openButton.textContent = "Open Asset Inspector";
+    openButton.textContent = "Asset Inspector'ı Aç";
     openButton.type = "button";
     openButton.style.padding = "10px 14px";
     openButton.style.border = "0";
@@ -91,7 +91,7 @@ class DiscordAssetInspectorPlugin {
     openButton.onclick = () => this.open();
 
     const rescanButton = document.createElement("button");
-    rescanButton.textContent = "Rescan";
+    rescanButton.textContent = "Yeniden Tara";
     rescanButton.type = "button";
     rescanButton.style.padding = "10px 14px";
     rescanButton.style.border = "0";
@@ -103,7 +103,7 @@ class DiscordAssetInspectorPlugin {
     };
 
     const info = document.createElement("div");
-    info.textContent = `Version ${DAI.VERSION} · No token access · No telemetry · No webhook requests`;
+    info.textContent = `Sürüm ${DAI.VERSION} · Token erişimi yok · Telemetri yok · Webhook isteği yok`;
     info.style.fontSize = "12px";
     info.style.opacity = "0.55";
 
