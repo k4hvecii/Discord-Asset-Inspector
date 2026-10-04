@@ -8,6 +8,9 @@ namespace DAI {
     | "css"
     | "cache";
 
+  export type AssetKind = "image" | "video" | "audio" | "font" | "code" | "other";
+  export type CopyFormat = "url" | "markdown" | "css" | "html";
+
   export interface AssetRecord {
     url: string;
     name: string;
@@ -20,6 +23,7 @@ namespace DAI {
     url: string;
     name: string;
     extension: string;
+    kind: AssetKind;
     sources: AssetSource[];
     modules: string[];
   }
