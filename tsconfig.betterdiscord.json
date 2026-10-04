@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "none",
-    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2020"
+    ],
     "strict": true,
     "skipLibCheck": true,
     "outFile": "plugins/betterdiscord/DiscordAssetInspector.plugin.js",
@@ -19,7 +23,6 @@
     "src/scanners/dom.ts",
     "src/scanners/performance.ts",
     "src/scanners/css.ts",
-    "src/scanners/cache.ts",
     "src/ui/styles.ts",
     "src/ui/app.ts"
   ]
