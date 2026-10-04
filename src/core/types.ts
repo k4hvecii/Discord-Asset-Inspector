@@ -1,12 +1,10 @@
 namespace DAI {
   export type AssetSource =
-    | "webpack"
-    | "lazy-js"
-    | "lazy-css"
-    | "dom"
     | "performance"
     | "css"
-    | "cache";
+    | "webpack"
+    | "lazy-js"
+    | "lazy-css";
 
   export type AssetKind = "image" | "video" | "audio" | "font" | "code" | "other";
   export type CopyFormat = "url" | "markdown" | "css" | "html";
