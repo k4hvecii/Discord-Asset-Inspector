@@ -20,7 +20,6 @@
     "src/core/utils.ts",
     "src/core/registry.ts",
     "src/scanners/webpack.ts",
-    "src/scanners/dom.ts",
     "src/scanners/performance.ts",
     "src/scanners/css.ts",
     "src/ui/styles.ts",
