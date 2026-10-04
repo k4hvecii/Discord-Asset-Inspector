@@ -41,5 +41,6 @@ namespace DAI {
     scannedResources?: number;
     discoveredChunks?: number;
     failedResources?: number;
+    skippedAssets?: number;
   }
 }
