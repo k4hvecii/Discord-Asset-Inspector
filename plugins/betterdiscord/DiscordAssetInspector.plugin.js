@@ -2,7 +2,7 @@
  * @name DiscordAssetInspector
  * @author K4hveci
  * @description Discord tarafından yüklenen varlıkları yerel BetterDiscord panelinden inceleyin.
- * @version 0.3.1
+ * @version 0.3.2
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -10,6 +10,9 @@ class DiscordAssetInspectorPlugin {
     constructor() {
         this.app = null;
         this.started = false;
+        this.launcher = null;
+        this.launcherObserver = null;
+        this.launcherStyle = null;
         this.onShortcut = (event) => {
             if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "KeyK") {
                 event.preventDefault();
@@ -23,6 +26,7 @@ class DiscordAssetInspectorPlugin {
             return;
         this.started = true;
         window.addEventListener("keydown", this.onShortcut, true);
+        this.startLauncher();
         const api = globalThis.BdApi;
         api?.UI?.showToast?.("Asset Inspector hazır · Ctrl/Cmd + Shift + K", {
             type: "success",
@@ -34,6 +38,7 @@ class DiscordAssetInspectorPlugin {
             return;
         this.started = false;
         window.removeEventListener("keydown", this.onShortcut, true);
+        this.stopLauncher();
         this.close();
         document.getElementById(DAI.ROOT_ID)?.remove();
     }
@@ -42,18 +47,115 @@ class DiscordAssetInspectorPlugin {
             return;
         this.app = new DAI.InspectorApp(() => {
             this.app = null;
+            this.updateLauncherState();
         });
+        this.updateLauncherState();
         void this.app.start();
     }
     close() {
         this.app?.close();
         this.app = null;
+        this.updateLauncherState();
     }
     toggle() {
         if (this.app)
             this.close();
         else
             this.open();
+    }
+    startLauncher() {
+        this.stopLauncher();
+        const style = document.createElement("style");
+        style.id = "__discord_asset_inspector_launcher_style__";
+        style.textContent = `
+      #__discord_asset_inspector_launcher__ {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0 2px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--interactive-normal, #b5bac1);
+        cursor: pointer;
+      }
+      #__discord_asset_inspector_launcher__:hover {
+        color: var(--interactive-hover, #dbdee1);
+        background: var(--background-mod-subtle, rgba(255,255,255,.08));
+      }
+      #__discord_asset_inspector_launcher__[aria-pressed="true"] {
+        color: var(--brand-500, #5865f2);
+        background: color-mix(in srgb, var(--brand-500, #5865f2) 14%, transparent);
+      }
+      #__discord_asset_inspector_launcher__ svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+        pointer-events: none;
+      }
+    `;
+        document.head.appendChild(style);
+        this.launcherStyle = style;
+        this.mountLauncher();
+        this.launcherObserver = new MutationObserver(() => this.mountLauncher());
+        this.launcherObserver.observe(document.body, { childList: true, subtree: true });
+    }
+    stopLauncher() {
+        this.launcherObserver?.disconnect();
+        this.launcherObserver = null;
+        this.launcher?.remove();
+        this.launcher = null;
+        this.launcherStyle?.remove();
+        this.launcherStyle = null;
+        document.getElementById("__discord_asset_inspector_launcher__")?.remove();
+        document.getElementById("__discord_asset_inspector_launcher_style__")?.remove();
+    }
+    findToolbar() {
+        const candidates = Array.from(document.querySelectorAll('[class*="upperContainer_"] [class*="toolbar_"]'));
+        return candidates.find(element => {
+            if (element.closest("#" + DAI.ROOT_ID))
+                return false;
+            const rect = element.getBoundingClientRect();
+            return rect.width > 80 && rect.height > 20 && rect.height < 70;
+        }) || null;
+    }
+    mountLauncher() {
+        const toolbar = this.findToolbar();
+        if (!toolbar)
+            return;
+        const current = document.getElementById("__discord_asset_inspector_launcher__");
+        if (current && current.parentElement === toolbar) {
+            this.launcher = current;
+            this.updateLauncherState();
+            return;
+        }
+        current?.remove();
+        const button = document.createElement("button");
+        button.id = "__discord_asset_inspector_launcher__";
+        button.type = "button";
+        button.title = "Asset Inspector'ı Aç";
+        button.setAttribute("aria-label", "Asset Inspector'ı Aç");
+        button.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M4.75 3.5h5.5A1.75 1.75 0 0 1 12 5.25v5.5a1.75 1.75 0 0 1-1.75 1.75h-5.5A1.75 1.75 0 0 1 3 10.75v-5.5A1.75 1.75 0 0 1 4.75 3.5Zm9 0h5.5A1.75 1.75 0 0 1 21 5.25v5.5a1.75 1.75 0 0 1-1.75 1.75h-5.5A1.75 1.75 0 0 1 12 10.75v-5.5A1.75 1.75 0 0 1 13.75 3.5Zm-9 9h5.5A1.75 1.75 0 0 1 12 14.25v5.5a1.75 1.75 0 0 1-1.75 1.75h-5.5A1.75 1.75 0 0 1 3 19.75v-5.5a1.75 1.75 0 0 1 1.75-1.75Zm9 0h5.5A1.75 1.75 0 0 1 21 14.25v5.5a1.75 1.75 0 0 1-1.75 1.75h-5.5A1.75 1.75 0 0 1 12 19.75v-5.5a1.75 1.75 0 0 1 1.75-1.75Z"/>
+      </svg>
+    `;
+        button.addEventListener("click", () => this.toggle());
+        toolbar.prepend(button);
+        this.launcher = button;
+        this.updateLauncherState();
+    }
+    updateLauncherState() {
+        if (!this.launcher?.isConnected)
+            return;
+        const open = Boolean(this.app);
+        this.launcher.setAttribute("aria-pressed", String(open));
+        this.launcher.title = open ? "Asset Inspector'ı Kapat" : "Asset Inspector'ı Aç";
+        this.launcher.setAttribute("aria-label", this.launcher.title);
     }
     getSettingsPanel() {
         const panel = document.createElement("div");
@@ -66,7 +168,7 @@ class DiscordAssetInspectorPlugin {
         title.style.fontWeight = "700";
         const note = document.createElement("div");
         note.textContent =
-            "Varlık inceleyiciyi buradan açabilir veya Discord içinde Ctrl/Cmd + Shift + K kısayolunu kullanabilirsin. Eklentiyi kapatmak kısayolu kaldırır ve açık paneli kapatır.";
+            "Varlık inceleyiciyi Discord'un üst araç çubuğundaki küçük düğmeden, buradan veya Ctrl/Cmd + Shift + K kısayoluyla açabilirsin. Eklentiyi kapatmak düğmeyi ve kısayolu kaldırır.";
         note.style.opacity = "0.72";
         note.style.lineHeight = "1.5";
         const actions = document.createElement("div");
