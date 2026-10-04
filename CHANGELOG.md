@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 - 2026-10-04
+
+- Added client-only filtering as the default scan mode.
+- Filters Discord avatars, bot/app icons, emojis, stickers, banners, attachments, role icons and profile decorations from normal results.
+- Runtime DOM, Performance and Cache scans now keep only likely Discord client assets by default.
+- Added a **Kullanıcı içeriği** toggle for explicitly including runtime user content when needed.
+- Turning the toggle off prunes user-content results from the active registry.
+
+
 ## 0.4.0 - 2026-10-04
 
 - Reworked the asset card layout for a cleaner media-library feel.
