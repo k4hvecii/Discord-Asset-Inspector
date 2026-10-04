@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 - 2026-10-04
+
+- Added image, video, audio, font, code/data and other asset categories.
+- Added multi-select, select-visible, clear-selection and selected-only workflows.
+- Added URL, Markdown, CSS and HTML copy formats.
+- Added module-count sorting and category counters.
+- Refined asset cards and responsive controls for BetterDiscord use.
+- Kept the scanner local-only and dependency-free at runtime.
+
+
 ## 0.2.0 - 2026-10-01
 
 - Added a single-file BetterDiscord plugin distribution.
