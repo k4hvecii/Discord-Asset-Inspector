@@ -373,7 +373,14 @@ var DAI;
             this.registry = registry;
             this.chunkIds = new Set();
             this.runtime = null;
+            this.includeRawAssetModules = false;
             this.moduleCache = new WeakMap();
+        }
+        setIncludeRawAssetModules(value) {
+            this.includeRawAssetModules = value;
+        }
+        isRawAssetModulesEnabled() {
+            return this.includeRawAssetModules;
         }
         connect() {
             try {
@@ -400,6 +407,7 @@ var DAI;
             const assetRe = DAI.assetRegex();
             const chunkRe = /\.e\(\s*["']?([\w$-]+)["']?\s*\)/g;
             let scanned = 0;
+            let skippedAssets = 0;
             for (const [id, factory] of Object.entries(modules)) {
                 let parsed = this.moduleCache.get(factory);
                 if (!parsed) {
@@ -423,6 +431,17 @@ var DAI;
                         const normalized = DAI.normalizeUrl(raw, this.runtime);
                         return normalized && DAI.IMAGE_EXTENSIONS.has(DAI.getExtension(normalized)) ? count + 1 : count;
                     }, 0);
+                    const normalizedAssets = assets
+                        .map(raw => DAI.normalizeUrl(raw, this.runtime))
+                        .filter((value) => Boolean(value));
+                    const bareHashedSvgModule = normalizedAssets.length > 0 &&
+                        normalizedAssets.length <= 2 &&
+                        chunks.length === 0 &&
+                        normalizedAssets.every(url => {
+                            const file = DAI.fileName(url);
+                            return /^[a-f0-9_-]{8,}\.svg(?:\?|$)/i.test(file);
+                        }) &&
+                        code.length <= 1400;
                     parsed = {
                         assets,
                         chunks,
@@ -430,13 +449,16 @@ var DAI;
                         emojiLike: /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(code),
                         avatarLike: /(default.?avatar|avatar.?asset|default.?profile|embed.?avatar)/i.test(code),
                         stickerLike: /(sticker|sticker.?pack|sticker.?asset)/i.test(code),
-                        profileLike: /(profile.?effect|avatar.?decoration|profile.?decoration|collectibles?)/i.test(code)
+                        profileLike: /(profile.?effect|avatar.?decoration|profile.?decoration|collectibles?)/i.test(code),
+                        codeLength: code.length,
+                        bareHashedSvgModule
                     };
                     this.moduleCache.set(factory, parsed);
                 }
                 scanned++;
                 parsed.chunks.forEach(chunkId => this.chunkIds.add(chunkId));
                 const broadMode = this.registry.isUserContentEnabled();
+                const rawMode = this.includeRawAssetModules;
                 const noisyEmojiModule = !broadMode && parsed.emojiLike && parsed.imageAssetCount >= 3;
                 const noisyAvatarModule = !broadMode && parsed.avatarLike && parsed.imageAssetCount >= 2;
                 const denseImageCatalog = !broadMode && parsed.imageAssetCount >= 64;
@@ -448,15 +470,19 @@ var DAI;
                     const contextualNoise = !broadMode &&
                         rasterImage &&
                         (parsed.emojiLike || parsed.avatarLike || parsed.stickerLike || parsed.profileLike);
-                    if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog || contextualNoise))
+                    const hiddenBareSvg = !rawMode && parsed.bareHashedSvgModule && extension === "svg";
+                    if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog || contextualNoise || hiddenBareSvg)) {
+                        skippedAssets++;
                         continue;
+                    }
                     this.registry.add(raw, "webpack", id);
                 }
             }
             return {
                 added: this.registry.size() - before,
                 scannedModules: scanned,
-                discoveredChunks: this.chunkIds.size
+                discoveredChunks: this.chunkIds.size,
+                skippedAssets
             };
         }
         resolveResource(id, kind) {
