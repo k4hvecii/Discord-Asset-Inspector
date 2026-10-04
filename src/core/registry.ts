@@ -1,28 +1,8 @@
 namespace DAI {
   export class AssetRegistry {
     private readonly items = new Map<string, AssetRecord>();
-    private includeUserContent = false;
 
     constructor(private runtime: WebpackRuntime | null = null) {}
-
-    setIncludeUserContent(value: boolean): number {
-      this.includeUserContent = value;
-      if (value) return 0;
-
-      let removed = 0;
-      for (const [url, item] of this.items) {
-        const keep = [...item.sources].some(source => shouldIncludeAsset(url, source, false));
-        if (!keep) {
-          this.items.delete(url);
-          removed++;
-        }
-      }
-      return removed;
-    }
-
-    isUserContentEnabled(): boolean {
-      return this.includeUserContent;
-    }
 
     clear(): void {
       this.items.clear();
@@ -34,15 +14,10 @@ namespace DAI {
 
     add(raw: string, source: AssetSource, moduleId?: string): boolean {
       const url = normalizeUrl(raw, this.runtime);
-      if (!url || url.endsWith("/")) return false;
-      if (!shouldIncludeAsset(url, source, this.includeUserContent)) return false;
+      if (!url || !isStaticClientAssetUrl(url)) return false;
 
-      let extension = getExtension(url);
-      if (!extension && /(?:cdn\.discordapp\.com|media\.discordapp\.net)/i.test(url)) {
-        extension = "webp";
-      }
-
-      if (!EXTENSIONS.has(extension) && !url.startsWith("data:") && !url.startsWith("blob:")) return false;
+      const extension = getExtension(url);
+      if (!EXTENSIONS.has(extension)) return false;
 
       const existing = this.items.get(url);
       if (existing) {
