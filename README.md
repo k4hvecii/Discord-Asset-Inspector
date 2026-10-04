@@ -19,7 +19,7 @@ The easiest way to use Discord Asset Inspector is the BetterDiscord plugin.
 3. Put the file in your BetterDiscord plugins folder.
 4. Open Discord → Settings → BetterDiscord → Plugins.
 5. Enable **Discord Asset Inspector**.
-6. Open the plugin settings and click **Open Asset Inspector**, or press `Ctrl/Cmd + Shift + K`.
+6. Open it from the small Asset Inspector button in Discord's top channel toolbar, from plugin settings, or with `Ctrl/Cmd + Shift + K`.
 
 Default BetterDiscord plugin folders:
 
