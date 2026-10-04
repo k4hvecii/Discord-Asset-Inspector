@@ -776,7 +776,7 @@ var DAI;
 var DAI;
 (function (DAI) {
     DAI.STYLES = `
-#${DAI.ROOT_ID} {
+.dai-root {
   position: fixed;
   inset: 0;
   z-index: 2147483646;
@@ -784,16 +784,16 @@ var DAI;
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-#${DAI.ROOT_ID} * { box-sizing: border-box; }
+.dai-root * { box-sizing: border-box; }
 
-#${DAI.ROOT_ID} .dai-backdrop {
+.dai-root .dai-backdrop {
   position: absolute;
   inset: 0;
   background: rgba(6, 8, 12, .72);
   backdrop-filter: blur(8px);
 }
 
-#${DAI.ROOT_ID} .dai-panel {
+.dai-root .dai-panel {
   position: absolute;
   inset: 4vh 3vw;
   max-width: 1500px;
@@ -807,7 +807,7 @@ var DAI;
   box-shadow: 0 28px 90px rgba(0,0,0,.46);
 }
 
-#${DAI.ROOT_ID} .dai-head {
+.dai-root .dai-head {
   min-height: 70px;
   display: flex;
   align-items: center;
@@ -817,18 +817,18 @@ var DAI;
   background: #181a20;
 }
 
-#${DAI.ROOT_ID} .dai-brand { min-width: 230px; }
-#${DAI.ROOT_ID} .dai-title { font-size: 15px; font-weight: 720; letter-spacing: -.15px; }
-#${DAI.ROOT_ID} .dai-sub { margin-top: 3px; color: #7f8795; font-size: 10px; }
-#${DAI.ROOT_ID} .dai-spacer { flex: 1; }
+.dai-root .dai-brand { min-width: 230px; }
+.dai-root .dai-title { font-size: 15px; font-weight: 720; letter-spacing: -.15px; }
+.dai-root .dai-sub { margin-top: 3px; color: #7f8795; font-size: 10px; }
+.dai-root .dai-spacer { flex: 1; }
 
-#${DAI.ROOT_ID} button,
-#${DAI.ROOT_ID} input,
-#${DAI.ROOT_ID} select {
+.dai-root button,
+.dai-root input,
+.dai-root select {
   font: inherit;
 }
 
-#${DAI.ROOT_ID} button {
+.dai-root button {
   border: 1px solid rgba(255,255,255,.09);
   border-radius: 9px;
   background: #22252c;
@@ -838,40 +838,40 @@ var DAI;
   transition: background .14s ease, border-color .14s ease, color .14s ease;
 }
 
-#${DAI.ROOT_ID} button:hover {
+.dai-root button:hover {
   background: #292d35;
   border-color: rgba(255,255,255,.14);
 }
 
-#${DAI.ROOT_ID} button:disabled {
+.dai-root button:disabled {
   opacity: .42;
   cursor: default;
 }
 
-#${DAI.ROOT_ID} .dai-primary {
+.dai-root .dai-primary {
   background: #5865f2;
   border-color: #6772f4;
   color: white;
 }
 
-#${DAI.ROOT_ID} .dai-primary:hover { background: #626ef3; }
+.dai-root .dai-primary:hover { background: #626ef3; }
 
-#${DAI.ROOT_ID} .dai-close {
+.dai-root .dai-close {
   width: 36px;
   height: 36px;
   padding: 0;
   font-size: 18px;
 }
 
-#${DAI.ROOT_ID} .dai-tools {
+.dai-root .dai-tools {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) 150px 150px 150px;
   gap: 8px;
   padding: 12px 18px 9px;
 }
 
-#${DAI.ROOT_ID} input,
-#${DAI.ROOT_ID} select {
+.dai-root input,
+.dai-root select {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(255,255,255,.09);
@@ -882,14 +882,14 @@ var DAI;
   outline: none;
 }
 
-#${DAI.ROOT_ID} input::placeholder { color: #666e7c; }
+.dai-root input::placeholder { color: #666e7c; }
 
-#${DAI.ROOT_ID} input:focus,
-#${DAI.ROOT_ID} select:focus {
+.dai-root input:focus,
+.dai-root select:focus {
   border-color: rgba(88,101,242,.72);
 }
 
-#${DAI.ROOT_ID} .dai-kinds {
+.dai-root .dai-kinds {
   display: flex;
   gap: 4px;
   padding: 0 18px 9px;
@@ -898,9 +898,9 @@ var DAI;
   border-bottom: 1px solid rgba(255,255,255,.055);
 }
 
-#${DAI.ROOT_ID} .dai-kinds::-webkit-scrollbar { display: none; }
+.dai-root .dai-kinds::-webkit-scrollbar { display: none; }
 
-#${DAI.ROOT_ID} .dai-kinds button {
+.dai-root .dai-kinds button {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -913,7 +913,7 @@ var DAI;
   font-size: 10px;
 }
 
-#${DAI.ROOT_ID} .dai-kinds button b {
+.dai-root .dai-kinds button b {
   min-width: 18px;
   color: #626a77;
   font-size: 9px;
@@ -921,18 +921,18 @@ var DAI;
   text-align: right;
 }
 
-#${DAI.ROOT_ID} .dai-kinds button:hover {
+.dai-root .dai-kinds button:hover {
   background: #20232a;
   color: #cdd2da;
 }
 
-#${DAI.ROOT_ID} .dai-kinds button.is-active {
+.dai-root .dai-kinds button.is-active {
   background: #242832;
   color: #eef0f4;
   box-shadow: inset 0 -2px #5865f2;
 }
 
-#${DAI.ROOT_ID} .dai-bulk {
+.dai-root .dai-bulk {
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -941,40 +941,40 @@ var DAI;
   border-bottom: 1px solid rgba(255,255,255,.055);
 }
 
-#${DAI.ROOT_ID} .dai-bulk button {
+.dai-root .dai-bulk button {
   padding: 6px 9px;
   font-size: 10px;
 }
 
-#${DAI.ROOT_ID} .dai-bulk button.is-active {
+.dai-root .dai-bulk button.is-active {
   border-color: rgba(88,101,242,.5);
   background: rgba(88,101,242,.13);
   color: #dfe2ff;
 }
 
-#${DAI.ROOT_ID} .dai-content-toggle {
+.dai-root .dai-content-toggle {
   color: #8f97a4;
 }
 
-#${DAI.ROOT_ID} .dai-content-toggle.is-active {
+.dai-root .dai-content-toggle.is-active {
   border-color: rgba(250,166,26,.34);
   background: rgba(250,166,26,.09);
   color: #f2c26f;
 }
 
-#${DAI.ROOT_ID} .dai-bulk select {
+.dai-root .dai-bulk select {
   width: 126px;
   height: 31px;
   font-size: 10px;
 }
 
-#${DAI.ROOT_ID} .dai-progress {
+.dai-root .dai-progress {
   height: 2px;
   background: rgba(255,255,255,.04);
   overflow: hidden;
 }
 
-#${DAI.ROOT_ID} .dai-progress > i {
+.dai-root .dai-progress > i {
   display: block;
   width: var(--p, 0%);
   height: 100%;
@@ -982,7 +982,7 @@ var DAI;
   transition: width .15s linear;
 }
 
-#${DAI.ROOT_ID} .dai-status {
+.dai-root .dai-status {
   display: flex;
   align-items: center;
   gap: 13px;
@@ -993,9 +993,9 @@ var DAI;
   border-bottom: 1px solid rgba(255,255,255,.05);
 }
 
-#${DAI.ROOT_ID} .dai-status strong { color: #e4e7ec; }
+.dai-root .dai-status strong { color: #e4e7ec; }
 
-#${DAI.ROOT_ID} .dai-grid {
+.dai-root .dai-grid {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -1008,7 +1008,7 @@ var DAI;
   scrollbar-color: #555b66 transparent;
 }
 
-#${DAI.ROOT_ID} .dai-card {
+.dai-root .dai-card {
   position: relative;
   min-width: 0;
   overflow: hidden;
@@ -1018,18 +1018,18 @@ var DAI;
   transition: border-color .14s ease, background .14s ease, transform .14s ease;
 }
 
-#${DAI.ROOT_ID} .dai-card:hover {
+.dai-root .dai-card:hover {
   border-color: rgba(255,255,255,.14);
   background: #1e2128;
   transform: translateY(-1px);
 }
 
-#${DAI.ROOT_ID} .dai-card.is-selected {
+.dai-root .dai-card.is-selected {
   border-color: rgba(88,101,242,.82);
   box-shadow: inset 0 0 0 1px rgba(88,101,242,.16);
 }
 
-#${DAI.ROOT_ID} .dai-preview {
+.dai-root .dai-preview {
   position: relative;
   aspect-ratio: 16 / 9;
   display: grid;
@@ -1042,14 +1042,14 @@ var DAI;
   background-size: 18px 18px;
 }
 
-#${DAI.ROOT_ID} .dai-preview img,
-#${DAI.ROOT_ID} .dai-preview video {
+.dai-root .dai-preview img,
+.dai-root .dai-preview video {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-#${DAI.ROOT_ID} .dai-preview-top {
+.dai-root .dai-preview-top {
   position: absolute;
   inset: 8px 8px auto 8px;
   display: flex;
@@ -1059,14 +1059,14 @@ var DAI;
   pointer-events: none;
 }
 
-#${DAI.ROOT_ID} .dai-badges {
+.dai-root .dai-badges {
   display: flex;
   gap: 5px;
   min-width: 0;
 }
 
-#${DAI.ROOT_ID} .dai-kind-badge,
-#${DAI.ROOT_ID} .dai-ext-badge {
+.dai-root .dai-kind-badge,
+.dai-root .dai-ext-badge {
   padding: 4px 6px;
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 6px;
@@ -1078,12 +1078,12 @@ var DAI;
   letter-spacing: .025em;
 }
 
-#${DAI.ROOT_ID} .dai-ext-badge {
+.dai-root .dai-ext-badge {
   color: #8f98a6;
   font-weight: 600;
 }
 
-#${DAI.ROOT_ID} .dai-select {
+.dai-root .dai-select {
   width: 27px;
   height: 27px;
   flex: 0 0 27px;
@@ -1099,23 +1099,23 @@ var DAI;
   backdrop-filter: blur(6px);
 }
 
-#${DAI.ROOT_ID} .dai-card:hover .dai-select,
-#${DAI.ROOT_ID} .dai-card.is-selected .dai-select {
+.dai-root .dai-card:hover .dai-select,
+.dai-root .dai-card.is-selected .dai-select {
   opacity: 1;
 }
 
-#${DAI.ROOT_ID} .dai-card.is-selected .dai-select {
+.dai-root .dai-card.is-selected .dai-select {
   border-color: #6d78f4;
   background: #5865f2;
 }
 
-#${DAI.ROOT_ID} .dai-select span {
+.dai-root .dai-select span {
   font-size: 13px;
   line-height: 1;
 }
 
-#${DAI.ROOT_ID} .dai-filetype,
-#${DAI.ROOT_ID} .dai-fonttype {
+.dai-root .dai-filetype,
+.dai-root .dai-fonttype {
   display: grid;
   place-items: center;
   gap: 4px;
@@ -1123,19 +1123,19 @@ var DAI;
   text-transform: uppercase;
 }
 
-#${DAI.ROOT_ID} .dai-filetype b {
+.dai-root .dai-filetype b {
   color: #929aa7;
   font-size: 18px;
   letter-spacing: .08em;
 }
 
-#${DAI.ROOT_ID} .dai-filetype span,
-#${DAI.ROOT_ID} .dai-fonttype span {
+.dai-root .dai-filetype span,
+.dai-root .dai-fonttype span {
   font-size: 8px;
   letter-spacing: .08em;
 }
 
-#${DAI.ROOT_ID} .dai-fonttype b {
+.dai-root .dai-fonttype b {
   color: #aeb4be;
   font-family: Georgia, serif;
   font-size: 36px;
@@ -1143,11 +1143,11 @@ var DAI;
   text-transform: none;
 }
 
-#${DAI.ROOT_ID} .dai-body {
+.dai-root .dai-body {
   padding: 11px 11px 10px;
 }
 
-#${DAI.ROOT_ID} .dai-name {
+.dai-root .dai-name {
   overflow: hidden;
   color: #e6e9ee;
   font-size: 12px;
@@ -1157,7 +1157,7 @@ var DAI;
   white-space: nowrap;
 }
 
-#${DAI.ROOT_ID} .dai-location {
+.dai-root .dai-location {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1168,29 +1168,29 @@ var DAI;
   white-space: nowrap;
 }
 
-#${DAI.ROOT_ID} .dai-host {
+.dai-root .dai-host {
   min-width: 0;
   overflow: hidden;
   color: #858e9c;
   text-overflow: ellipsis;
 }
 
-#${DAI.ROOT_ID} .dai-dot { color: #4f5662; }
+.dai-root .dai-dot { color: #4f5662; }
 
-#${DAI.ROOT_ID} .dai-footer {
+.dai-root .dai-footer {
   display: grid;
   gap: 9px;
   margin-top: 10px;
 }
 
-#${DAI.ROOT_ID} .dai-chips {
+.dai-root .dai-chips {
   min-height: 19px;
   display: flex;
   gap: 5px;
   overflow: hidden;
 }
 
-#${DAI.ROOT_ID} .dai-chip {
+.dai-root .dai-chip {
   flex: 0 0 auto;
   padding: 3px 6px;
   border-radius: 6px;
@@ -1199,13 +1199,13 @@ var DAI;
   font-size: 8.5px;
 }
 
-#${DAI.ROOT_ID} .dai-actions {
+.dai-root .dai-actions {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 5px;
 }
 
-#${DAI.ROOT_ID} .dai-actions button {
+.dai-root .dai-actions button {
   min-width: 0;
   padding: 6px 5px;
   border-radius: 7px;
@@ -1214,21 +1214,21 @@ var DAI;
   font-size: 9.5px;
 }
 
-#${DAI.ROOT_ID} .dai-actions button:hover {
+.dai-root .dai-actions button:hover {
   color: #eef0f4;
 }
 
-#${DAI.ROOT_ID} .dai-actions .dai-download {
+.dai-root .dai-actions .dai-download {
   border-color: rgba(88,101,242,.3);
   color: #cfd3ff;
   background: rgba(88,101,242,.1);
 }
 
-#${DAI.ROOT_ID} .dai-actions .dai-download:hover {
+.dai-root .dai-actions .dai-download:hover {
   background: rgba(88,101,242,.18);
 }
 
-#${DAI.ROOT_ID} .dai-empty {
+.dai-root .dai-empty {
   grid-column: 1 / -1;
   padding: 70px 20px;
   color: #747d8b;
@@ -1236,31 +1236,31 @@ var DAI;
 }
 
 @media (max-width: 1000px) {
-  #${DAI.ROOT_ID} .dai-panel { inset: 2vh 2vw; }
-  #${DAI.ROOT_ID} .dai-tools { grid-template-columns: 1fr 1fr; }
-  #${DAI.ROOT_ID} .dai-tools input { grid-column: 1 / -1; }
-  #${DAI.ROOT_ID} .dai-brand { min-width: 0; }
-  #${DAI.ROOT_ID} .dai-head .dai-secondary { display: none; }
-  #${DAI.ROOT_ID} .dai-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .dai-root .dai-panel { inset: 2vh 2vw; }
+  .dai-root .dai-tools { grid-template-columns: 1fr 1fr; }
+  .dai-root .dai-tools input { grid-column: 1 / -1; }
+  .dai-root .dai-brand { min-width: 0; }
+  .dai-root .dai-head .dai-secondary { display: none; }
+  .dai-root .dai-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 }
 
 @media (max-width: 700px) {
-  #${DAI.ROOT_ID} .dai-head { padding: 12px; }
-  #${DAI.ROOT_ID} .dai-tools { padding-left: 12px; padding-right: 12px; }
-  #${DAI.ROOT_ID} .dai-kinds { padding-left: 12px; padding-right: 12px; }
-  #${DAI.ROOT_ID} .dai-bulk { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; }
-  #${DAI.ROOT_ID} .dai-bulk .dai-spacer { display: none; }
-  #${DAI.ROOT_ID} .dai-status { padding-left: 12px; padding-right: 12px; overflow-x: auto; white-space: nowrap; }
-  #${DAI.ROOT_ID} .dai-grid { padding: 12px; }
+  .dai-root .dai-head { padding: 12px; }
+  .dai-root .dai-tools { padding-left: 12px; padding-right: 12px; }
+  .dai-root .dai-kinds { padding-left: 12px; padding-right: 12px; }
+  .dai-root .dai-bulk { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; }
+  .dai-root .dai-bulk .dai-spacer { display: none; }
+  .dai-root .dai-status { padding-left: 12px; padding-right: 12px; overflow-x: auto; white-space: nowrap; }
+  .dai-root .dai-grid { padding: 12px; }
 }
 
 @media (max-width: 560px) {
-  #${DAI.ROOT_ID} .dai-panel { inset: 0; border-radius: 0; }
-  #${DAI.ROOT_ID} .dai-tools { grid-template-columns: 1fr; }
-  #${DAI.ROOT_ID} .dai-tools input { grid-column: auto; }
-  #${DAI.ROOT_ID} .dai-bulk select,
-  #${DAI.ROOT_ID} .dai-bulk button[data-action="json"] { display: none; }
-  #${DAI.ROOT_ID} .dai-grid { grid-template-columns: 1fr; }
+  .dai-root .dai-panel { inset: 0; border-radius: 0; }
+  .dai-root .dai-tools { grid-template-columns: 1fr; }
+  .dai-root .dai-tools input { grid-column: auto; }
+  .dai-root .dai-bulk select,
+  .dai-root .dai-bulk button[data-action="json"] { display: none; }
+  .dai-root .dai-grid { grid-template-columns: 1fr; }
 }
 `;
 })(DAI || (DAI = {}));
@@ -1291,8 +1291,10 @@ var DAI;
             document.getElementById(DAI.ROOT_ID)?.remove();
             this.root = document.createElement("div");
             this.root.id = DAI.ROOT_ID;
-            this.root.innerHTML = `
+            this.surface = this.root.attachShadow({ mode: "open" });
+            this.surface.innerHTML = `
         <style>${DAI.STYLES}</style>
+        <div class="dai-root">
         <div class="dai-backdrop"></div>
         <section class="dai-panel" role="dialog" aria-modal="true" aria-label="Discord Asset Inspector">
           <header class="dai-head">
@@ -1331,7 +1333,8 @@ var DAI;
           <div class="dai-progress"><i data-role="progress"></i></div>
           <div class="dai-status"><span><strong data-role="count">0</strong> görünür</span><span><strong data-role="selected-count">0</strong> seçili</span><span><strong data-role="source-count">0</strong> kaynak türü</span><span data-role="status">Hazır</span></div>
           <div class="dai-grid" data-role="grid"></div>
-        </section>`;
+        </section>
+        </div>`;
             document.body.appendChild(this.root);
             this.grid = this.must("[data-role=grid]");
             this.countEl = this.must("[data-role=count]");
@@ -1353,12 +1356,12 @@ var DAI;
             this.extensionEl.addEventListener("change", () => this.applyFilters());
             this.sourceEl.addEventListener("change", () => this.applyFilters());
             this.sortEl.addEventListener("change", () => this.applyFilters());
-            this.root.addEventListener("click", event => this.handleClick(event));
-            this.root.querySelector(".dai-backdrop")?.addEventListener("click", () => this.close());
+            this.surface.addEventListener("click", event => this.handleClick(event));
+            this.surface.querySelector(".dai-backdrop")?.addEventListener("click", () => this.close());
             document.addEventListener("keydown", this.onKeydown, true);
         }
         must(selector) {
-            const element = this.root.querySelector(selector);
+            const element = this.surface.querySelector(selector);
             if (!element)
                 throw new Error("Eksik arayüz öğesi: " + selector);
             return element;
@@ -1378,7 +1381,7 @@ var DAI;
                 return DAI.saveJson(this.registry.serialize(), `discord-assets-${Date.now()}.json`);
             if (action === "kind") {
                 this.kind = (button.dataset.kind || "all");
-                this.root.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
+                this.surface.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
                 this.applyFilters();
                 return;
             }
@@ -1549,7 +1552,7 @@ var DAI;
                 counts[DAI.assetKind(item.extension)]++;
             }
             for (const [kind, count] of Object.entries(counts)) {
-                const element = this.root.querySelector(`[data-kind-count="${kind}"]`);
+                const element = this.surface.querySelector(`[data-kind-count="${kind}"]`);
                 if (element)
                     element.textContent = String(count);
             }
