@@ -48,6 +48,8 @@ The interface is organized as a small asset library with type tabs for images, v
 
 ## v0.3 workflow
 
+The default mode now rebuilds a clean client-asset registry on each rescan. Runtime user content and stale cache entries are excluded unless broad user-content mode is explicitly enabled.
+
 The main workflow is now:
 
 ```text
