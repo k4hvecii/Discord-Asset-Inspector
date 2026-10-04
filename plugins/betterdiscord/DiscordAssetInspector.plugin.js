@@ -1445,6 +1445,7 @@ var DAI;
             <button data-action="selected-only" aria-pressed="false">Yalnız seçilenler</button>
             <button data-action="clear-selection">Temizle</button>
             <button class="dai-content-toggle" data-action="user-content" aria-pressed="false">Kullanıcı içeriği: Kapalı</button>
+            <button class="dai-raw-toggle" data-action="raw-assets" aria-pressed="false">Ham paket varlıkları: Kapalı</button>
             <span class="dai-spacer"></span>
             <select data-role="copy-format" aria-label="Kopyalama biçimi"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
             <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
@@ -1470,6 +1471,7 @@ var DAI;
             this.selectedCountEl = this.must("[data-role=selected-count]");
             this.selectedOnlyButton = this.must("[data-action=selected-only]");
             this.userContentButton = this.must("[data-action=user-content]");
+            this.rawAssetsButton = this.must("[data-action=raw-assets]");
             const refresh = DAI.debounce(() => this.resetRenderWindow(), 120);
             this.searchEl.addEventListener("input", refresh);
             this.extensionEl.addEventListener("change", () => this.resetRenderWindow());
@@ -1527,6 +1529,15 @@ var DAI;
                 this.userContentButton.setAttribute("aria-pressed", String(enabled));
                 this.userContentButton.classList.toggle("is-active", enabled);
                 this.userContentButton.textContent = `Kullanıcı içeriği: ${enabled ? "Açık" : "Kapalı"}`;
+                await this.rescan();
+                return;
+            }
+            if (action === "raw-assets") {
+                const enabled = !this.webpack.isRawAssetModulesEnabled();
+                this.webpack.setIncludeRawAssetModules(enabled);
+                this.rawAssetsButton.setAttribute("aria-pressed", String(enabled));
+                this.rawAssetsButton.classList.toggle("is-active", enabled);
+                this.rawAssetsButton.textContent = `Ham paket varlıkları: ${enabled ? "Açık" : "Kapalı"}`;
                 await this.rescan();
                 return;
             }
@@ -1590,7 +1601,8 @@ var DAI;
             this.rebuildFilters();
             this.applyFilters();
             const scanned = reports.reduce((sum, report) => sum + (report.scannedResources || 0) + (report.scannedModules || 0), 0);
-            this.setStatus(`Tarama tamamlandı · ${this.registry.size()} temiz varlık · ${scanned} kaynak incelendi.`);
+            const skipped = reports.reduce((sum, report) => sum + (report.skippedAssets || 0), 0);
+            this.setStatus(`Tarama tamamlandı · ${this.registry.size()} temiz varlık · ${skipped} gereksiz varlık filtrelendi · ${scanned} kaynak incelendi.`);
         }
         async scanLazy() {
             if (this.closed || this.lazyButton.disabled)
