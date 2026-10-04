@@ -1,8 +1,8 @@
 {
   "name": "discord-asset-inspector",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": false,
-  "description": "A privacy-conscious Discord asset inspection utility with BetterDiscord and standalone builds.",
+  "description": "A client-only Discord asset inspector with BetterDiscord and standalone builds.",
   "license": "MIT",
   "scripts": {
     "build": "npm run build:standalone && npm run build:betterdiscord",
