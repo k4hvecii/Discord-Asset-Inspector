@@ -1,8 +1,8 @@
 /**
  * @name DiscordAssetInspector
  * @author K4hveci
- * @description Inspect assets loaded by the Discord desktop client from a local BetterDiscord panel.
- * @version 0.2.0
+ * @description Browse and inspect assets loaded by Discord from a local BetterDiscord panel.
+ * @version 0.3.0
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -27,7 +27,7 @@ class DiscordAssetInspectorPlugin {
     window.addEventListener("keydown", this.onShortcut, true);
 
     const api = (globalThis as any).BdApi;
-    api?.UI?.showToast?.("Discord Asset Inspector enabled · Ctrl/Cmd + Shift + K", {
+    api?.UI?.showToast?.("Asset Inspector ready · Ctrl/Cmd + Shift + K", {
       type: "success",
       timeout: 3500
     });
