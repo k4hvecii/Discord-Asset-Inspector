@@ -1,6 +1,6 @@
 {
   "name": "discord-asset-inspector",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": false,
   "description": "A privacy-conscious Discord asset inspection utility with BetterDiscord and standalone builds.",
   "license": "MIT",
