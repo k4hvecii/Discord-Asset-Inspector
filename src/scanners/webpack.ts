@@ -4,6 +4,7 @@ namespace DAI {
   export class WebpackScanner {
     readonly chunkIds = new Set<string>();
     runtime: WebpackRuntime | null = null;
+    private includeRawAssetModules = false;
     private readonly moduleCache = new WeakMap<Function, {
       assets: string[];
       chunks: string[];
@@ -12,9 +13,19 @@ namespace DAI {
       avatarLike: boolean;
       stickerLike: boolean;
       profileLike: boolean;
+      codeLength: number;
+      bareHashedSvgModule: boolean;
     }>();
 
     constructor(private readonly registry: AssetRegistry) {}
+
+    setIncludeRawAssetModules(value: boolean): void {
+      this.includeRawAssetModules = value;
+    }
+
+    isRawAssetModulesEnabled(): boolean {
+      return this.includeRawAssetModules;
+    }
 
     connect(): WebpackRuntime | null {
       try {
@@ -40,6 +51,7 @@ namespace DAI {
       const assetRe = assetRegex();
       const chunkRe = /\.e\(\s*["']?([\w$-]+)["']?\s*\)/g;
       let scanned = 0;
+      let skippedAssets = 0;
 
       for (const [id, factory] of Object.entries(modules)) {
         let parsed = this.moduleCache.get(factory);
@@ -66,6 +78,19 @@ namespace DAI {
             return normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)) ? count + 1 : count;
           }, 0);
 
+          const normalizedAssets = assets
+            .map(raw => normalizeUrl(raw, this.runtime))
+            .filter((value): value is string => Boolean(value));
+          const bareHashedSvgModule =
+            normalizedAssets.length > 0 &&
+            normalizedAssets.length <= 2 &&
+            chunks.length === 0 &&
+            normalizedAssets.every(url => {
+              const file = fileName(url);
+              return /^[a-f0-9_-]{8,}\.svg(?:\?|$)/i.test(file);
+            }) &&
+            code.length <= 1400;
+
           parsed = {
             assets,
             chunks,
@@ -73,7 +98,9 @@ namespace DAI {
             emojiLike: /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(code),
             avatarLike: /(default.?avatar|avatar.?asset|default.?profile|embed.?avatar)/i.test(code),
             stickerLike: /(sticker|sticker.?pack|sticker.?asset)/i.test(code),
-            profileLike: /(profile.?effect|avatar.?decoration|profile.?decoration|collectibles?)/i.test(code)
+            profileLike: /(profile.?effect|avatar.?decoration|profile.?decoration|collectibles?)/i.test(code),
+            codeLength: code.length,
+            bareHashedSvgModule
           };
           this.moduleCache.set(factory, parsed);
         }
@@ -82,6 +109,7 @@ namespace DAI {
         parsed.chunks.forEach(chunkId => this.chunkIds.add(chunkId));
 
         const broadMode = this.registry.isUserContentEnabled();
+        const rawMode = this.includeRawAssetModules;
         const noisyEmojiModule = !broadMode && parsed.emojiLike && parsed.imageAssetCount >= 3;
         const noisyAvatarModule = !broadMode && parsed.avatarLike && parsed.imageAssetCount >= 2;
         const denseImageCatalog = !broadMode && parsed.imageAssetCount >= 64;
@@ -96,7 +124,12 @@ namespace DAI {
             rasterImage &&
             (parsed.emojiLike || parsed.avatarLike || parsed.stickerLike || parsed.profileLike);
 
-          if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog || contextualNoise)) continue;
+          const hiddenBareSvg = !rawMode && parsed.bareHashedSvgModule && extension === "svg";
+
+          if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog || contextualNoise || hiddenBareSvg)) {
+            skippedAssets++;
+            continue;
+          }
           this.registry.add(raw, "webpack", id);
         }
       }
@@ -104,7 +137,8 @@ namespace DAI {
       return {
         added: this.registry.size() - before,
         scannedModules: scanned,
-        discoveredChunks: this.chunkIds.size
+        discoveredChunks: this.chunkIds.size,
+        skippedAssets
       };
     }
 
