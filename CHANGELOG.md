@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.2 - 2026-10-04
+
+- Added a small Asset Inspector button to Discord's top channel toolbar.
+- Toolbar button toggles the inspector open and closed.
+- Added active-state feedback while the inspector is open.
+- Reattaches the launcher after Discord navigation changes.
+- Throttled toolbar observation to avoid unnecessary DOM work.
+
+
 ## 0.3.1 - 2026-10-04
 
 - Fixed malformed escaped newlines in the injected stylesheet that collapsed asset cards.
