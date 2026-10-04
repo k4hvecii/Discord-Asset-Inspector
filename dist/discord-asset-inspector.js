@@ -1,7 +1,7 @@
 "use strict";
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.3.0";
+    DAI.VERSION = "0.3.1";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
@@ -70,6 +70,31 @@ var DAI;
         return "other";
     }
     DAI.assetKind = assetKind;
+    function assetKindLabel(kind) {
+        const labels = {
+            image: "Görsel",
+            video: "Video",
+            audio: "Ses",
+            font: "Yazı tipi",
+            code: "Kod & veri",
+            other: "Diğer"
+        };
+        return labels[kind];
+    }
+    DAI.assetKindLabel = assetKindLabel;
+    function sourceLabel(source) {
+        const labels = {
+            webpack: "Webpack",
+            "lazy-js": "Ek JS",
+            "lazy-css": "Ek CSS",
+            dom: "DOM",
+            performance: "Ağ kaynakları",
+            css: "CSS",
+            cache: "Önbellek"
+        };
+        return labels[source];
+    }
+    DAI.sourceLabel = sourceLabel;
     function normalizeUrl(raw, runtime) {
         let value = String(raw || "").trim().replace(/\\(?:\/|u002f)/gi, "/");
         value = value.replace(/^["'`]|["'`]$/g, "");
@@ -469,8 +494,8 @@ var DAI;
 #${DAI.ROOT_ID} input:focus, #${DAI.ROOT_ID} select:focus { border-color: rgba(88,101,242,.7); }
 #${DAI.ROOT_ID} .dai-status { display: flex; align-items: center; gap: 14px; padding: 10px 20px; color: #9ca3b0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,.06); }
 #${DAI.ROOT_ID} .dai-status strong { color: #eef0f4; }
-#${DAI.ROOT_ID} .dai-grid { flex: 1; overflow: auto; padding: 16px 20px 22px; display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); align-content: start; gap: 12px; }
-#${DAI.ROOT_ID} .dai-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; background: #1d2027; transition: border-color .14s ease, transform .14s ease; }\n#${DAI.ROOT_ID} .dai-card:hover { border-color: rgba(255,255,255,.15); transform: translateY(-1px); }\n#${DAI.ROOT_ID} .dai-card.is-selected { border-color: rgba(88,101,242,.82); box-shadow: inset 0 0 0 1px rgba(88,101,242,.2); }\n#${DAI.ROOT_ID} .dai-select { position: absolute; z-index: 2; top: 8px; right: 8px; width: 26px; height: 26px; padding: 0; border-radius: 7px; background: rgba(15,17,22,.86); }\n#${DAI.ROOT_ID} .dai-card.is-selected .dai-select { background: #5865f2; border-color: #7580f4; }
+#${DAI.ROOT_ID} .dai-grid { flex: 1; min-height: 0; overflow: auto; padding: 16px 20px 22px; display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); align-content: start; gap: 12px; }
+#${DAI.ROOT_ID} .dai-card { position: relative; min-width: 0; min-height: 250px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; background: #1d2027; transition: border-color .14s ease, transform .14s ease; }\n#${DAI.ROOT_ID} .dai-card:hover { border-color: rgba(255,255,255,.15); transform: translateY(-1px); }\n#${DAI.ROOT_ID} .dai-card.is-selected { border-color: rgba(88,101,242,.82); box-shadow: inset 0 0 0 1px rgba(88,101,242,.2); }\n#${DAI.ROOT_ID} .dai-select { position: absolute; z-index: 2; top: 8px; right: 8px; width: 26px; height: 26px; padding: 0; border-radius: 7px; background: rgba(15,17,22,.86); }\n#${DAI.ROOT_ID} .dai-card.is-selected .dai-select { background: #5865f2; border-color: #7580f4; }
 #${DAI.ROOT_ID} .dai-preview { height: 136px; display: grid; place-items: center; background: #12141a; overflow: hidden; }
 #${DAI.ROOT_ID} .dai-preview img, #${DAI.ROOT_ID} .dai-preview video { width: 100%; height: 100%; object-fit: contain; }
 #${DAI.ROOT_ID} .dai-filetype, #${DAI.ROOT_ID} .dai-fonttype { display: grid; place-items: center; gap: 5px; color: #737b8c; text-transform: uppercase; }\n#${DAI.ROOT_ID} .dai-filetype b { color: #929aaa; font-size: 19px; letter-spacing: .08em; }\n#${DAI.ROOT_ID} .dai-filetype span, #${DAI.ROOT_ID} .dai-fonttype span { font-size: 9px; letter-spacing: .08em; }\n#${DAI.ROOT_ID} .dai-fonttype b { color: #aab0bb; font-family: Georgia,serif; font-size: 34px; font-weight: 500; text-transform: none; }
