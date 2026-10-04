@@ -1,7 +1,7 @@
 "use strict";
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.3.1";
+    DAI.VERSION = "0.3.2";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",

@@ -13,6 +13,7 @@ class DiscordAssetInspectorPlugin {
         this.launcher = null;
         this.launcherObserver = null;
         this.launcherStyle = null;
+        this.launcherMountTimer = 0;
         this.onShortcut = (event) => {
             if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "KeyK") {
                 event.preventDefault();
@@ -101,12 +102,17 @@ class DiscordAssetInspectorPlugin {
         document.head.appendChild(style);
         this.launcherStyle = style;
         this.mountLauncher();
-        this.launcherObserver = new MutationObserver(() => this.mountLauncher());
+        this.launcherObserver = new MutationObserver(() => {
+            window.clearTimeout(this.launcherMountTimer);
+            this.launcherMountTimer = window.setTimeout(() => this.mountLauncher(), 180);
+        });
         this.launcherObserver.observe(document.body, { childList: true, subtree: true });
     }
     stopLauncher() {
         this.launcherObserver?.disconnect();
         this.launcherObserver = null;
+        window.clearTimeout(this.launcherMountTimer);
+        this.launcherMountTimer = 0;
         this.launcher?.remove();
         this.launcher = null;
         this.launcherStyle?.remove();
@@ -207,7 +213,7 @@ class DiscordAssetInspectorPlugin {
 module.exports = DiscordAssetInspectorPlugin;
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.3.1";
+    DAI.VERSION = "0.3.2";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
