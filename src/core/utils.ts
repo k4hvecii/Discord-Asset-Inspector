@@ -36,6 +36,31 @@ namespace DAI {
     return "other";
   }
 
+  export function assetKindLabel(kind: AssetKind): string {
+    const labels: Record<AssetKind, string> = {
+      image: "Görsel",
+      video: "Video",
+      audio: "Ses",
+      font: "Yazı tipi",
+      code: "Kod & veri",
+      other: "Diğer"
+    };
+    return labels[kind];
+  }
+
+  export function sourceLabel(source: AssetSource): string {
+    const labels: Record<AssetSource, string> = {
+      webpack: "Webpack",
+      "lazy-js": "Ek JS",
+      "lazy-css": "Ek CSS",
+      dom: "DOM",
+      performance: "Ağ kaynakları",
+      css: "CSS",
+      cache: "Önbellek"
+    };
+    return labels[source];
+  }
+
   export function normalizeUrl(raw: string, runtime?: WebpackRuntime | null): string | null {
     let value = String(raw || "").trim().replace(/\\(?:\/|u002f)/gi, "/");
     value = value.replace(/^["'`]|["'`]$/g, "");
