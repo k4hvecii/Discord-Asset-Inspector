@@ -1,8 +1,8 @@
 /**
  * @name DiscordAssetInspector
  * @author K4hveci
- * @description Discord tarafından yüklenen varlıkları yerel BetterDiscord panelinden inceleyin.
- * @version 0.5.1
+ * @description Discord istemcisinin statik varlıklarını yerel BetterDiscord panelinden inceleyin.
+ * @version 0.6.0
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -213,7 +213,7 @@ class DiscordAssetInspectorPlugin {
 module.exports = DiscordAssetInspectorPlugin;
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.5.1";
+    DAI.VERSION = "0.6.0";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
@@ -240,30 +240,26 @@ var DAI;
 var DAI;
 (function (DAI) {
     function escapeHtml(value) {
-        return String(value).replace(/[&<>"']/g, ch => ({
+        return value.replace(/[&<>"']/g, char => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
             '"': "&quot;",
             "'": "&#039;"
-        }[ch] || ch));
+        })[char] || char);
     }
     DAI.escapeHtml = escapeHtml;
     function fileName(url) {
         try {
             const parsed = new URL(url, location.href);
-            return decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() || parsed.hostname);
+            return decodeURIComponent(parsed.pathname.split("/").pop() || "asset");
         }
         catch {
-            return url.split(/[?#]/)[0].split("/").pop() || url;
+            return "asset";
         }
     }
     DAI.fileName = fileName;
     function getExtension(url) {
-        if (url.startsWith("data:")) {
-            const match = url.match(/^data:[^/]+\/([a-z0-9+.-]+)/i);
-            return (match?.[1] || "").toLowerCase().replace("svg+xml", "svg");
-        }
         const clean = url.split(/[?#]/)[0];
         return (clean.match(/\.([a-z0-9]+)$/i)?.[1] || "").toLowerCase();
     }
@@ -296,24 +292,20 @@ var DAI;
     DAI.assetKindLabel = assetKindLabel;
     function sourceLabel(source) {
         const labels = {
+            performance: "Yüklü kaynak",
+            css: "CSS",
             webpack: "Webpack",
             "lazy-js": "Ek JS",
-            "lazy-css": "Ek CSS",
-            dom: "DOM",
-            performance: "Ağ kaynakları",
-            css: "CSS",
-            cache: "Önbellek"
+            "lazy-css": "Ek CSS"
         };
         return labels[source];
     }
     DAI.sourceLabel = sourceLabel;
     function normalizeUrl(raw, runtime) {
         let value = String(raw || "").trim().replace(/\\(?:\/|u002f)/gi, "/");
-        value = value.replace(/^["'`]|["'`]$/g, "");
+        value = value.replace(/^[\"'\x60]|[\"'\x60]$/g, "");
         if (!value || value.includes("${") || value.includes("#{"))
             return null;
-        if (value.startsWith("data:") || value.startsWith("blob:"))
-            return value;
         try {
             if (/^https?:\/\//i.test(value))
                 return new URL(value).href;
@@ -346,99 +338,29 @@ var DAI;
         }
     }
     DAI.isDiscordOwnedUrl = isDiscordOwnedUrl;
-    function isUserContentAssetUrl(url) {
+    function isStaticClientAssetUrl(url) {
         try {
             const parsed = new URL(url, location.href);
-            const host = parsed.hostname.toLowerCase();
-            const path = parsed.pathname.toLowerCase();
             if (!isDiscordOwnedUrl(parsed.href))
                 return false;
-            const userPaths = [
-                "/attachments/",
-                "/avatars/",
-                "/guilds/",
-                "/icons/",
-                "/banners/",
-                "/splashes/",
-                "/discovery-splashes/",
-                "/emojis/",
-                "/emoji/",
-                "/twemoji/",
-                "/emoji-sprites/",
-                "/stickers/",
-                "/sticker-packs/",
-                "/role-icons/",
-                "/app-icons/",
-                "/app-assets/",
-                "/team-icons/",
-                "/channel-icons/",
-                "/avatar-decorations/",
-                "/avatar-decoration-presets/",
-                "/profile-effects/",
-                "/soundboard-sounds/",
-                "/clan-badges/",
-                "/guild-events/",
-                "/guild-scheduled-events/"
+            const path = parsed.pathname.toLowerCase();
+            if (!(path === "/assets" || path.startsWith("/assets/") || path.includes("/assets/")))
+                return false;
+            const blocked = [
+                "/attachments/", "/avatars/", "/guilds/", "/banners/", "/emojis/",
+                "/stickers/", "/role-icons/", "/app-icons/", "/avatar-decorations/",
+                "/profile-effects/", "/soundboard-sounds/"
             ];
-            return userPaths.some(segment => path.includes(segment));
+            return !blocked.some(segment => path.includes(segment));
         }
         catch {
             return false;
         }
     }
-    DAI.isUserContentAssetUrl = isUserContentAssetUrl;
-    function isLikelyNoiseAssetUrl(url) {
-        try {
-            const parsed = new URL(url, location.href);
-            const path = decodeURIComponent(parsed.pathname).toLowerCase();
-            const name = (path.split("/").pop() || "").split(".")[0];
-            if (isUserContentAssetUrl(parsed.href))
-                return true;
-            const unicodeEmojiName = /^(?:emoji[_-]?)?(?:u[_+-]?)?[0-9a-f]{4,6}(?:[-_][0-9a-f]{2,6}){0,7}$/i.test(name);
-            if (unicodeEmojiName)
-                return true;
-            return (/(?:^|[-_.])(twemoji|emoji-sprite|emoji_sprite|emoji-pack|emoji_pack)(?:[-_.]|$)/i.test(name) ||
-                path.includes("/embed/avatars/") ||
-                path.includes("/default-avatars/"));
-        }
-        catch {
-            return false;
-        }
-    }
-    DAI.isLikelyNoiseAssetUrl = isLikelyNoiseAssetUrl;
-    function isLikelyClientAssetUrl(url) {
-        if (url.startsWith("data:") || url.startsWith("blob:"))
-            return false;
-        try {
-            const parsed = new URL(url, location.href);
-            const path = parsed.pathname.toLowerCase();
-            if (!isDiscordOwnedUrl(parsed.href))
-                return false;
-            if (isUserContentAssetUrl(parsed.href))
-                return false;
-            return (path.startsWith("/assets/") ||
-                path === "/assets" ||
-                path.includes("/assets/"));
-        }
-        catch {
-            return false;
-        }
-    }
-    DAI.isLikelyClientAssetUrl = isLikelyClientAssetUrl;
-    function shouldIncludeAsset(url, source, includeUserContent) {
-        if (includeUserContent)
-            return true;
-        if (isLikelyNoiseAssetUrl(url))
-            return false;
-        const runtimeOnlySources = new Set(["dom", "performance", "cache", "css"]);
-        if (!runtimeOnlySources.has(source))
-            return true;
-        return isLikelyClientAssetUrl(url);
-    }
-    DAI.shouldIncludeAsset = shouldIncludeAsset;
+    DAI.isStaticClientAssetUrl = isStaticClientAssetUrl;
     function assetRegex() {
         const ext = [...DAI.EXTENSIONS].join("|");
-        return new RegExp("(?:https?:\\\\?/\\\\?/[^\\\"'`\\\\\\s){}]+\\.(?:" + ext + ")(?=[?\\\"'`\\\\\\s){}]|$))|" +
+        return new RegExp("(?:https?:\\\\?/\\\\?/[^\\\"'\\x60\\\\\\s){}]+\\.(?:" + ext + ")(?=[?\\\"'\\x60\\\\\\s){}]|$))|" +
             "(?:(?:\\\\?/?assets\\\\?/)?[a-fA-F0-9_-]{8,}\\.(?:" + ext + "))", "gi");
     }
     DAI.assetRegex = assetRegex;
@@ -474,13 +396,13 @@ var DAI;
     DAI.copyText = copyText;
     function downloadBlob(blob, name) {
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = name;
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = name;
+        anchor.rel = "noopener";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 30000);
     }
     DAI.downloadBlob = downloadBlob;
@@ -503,24 +425,6 @@ var DAI;
         constructor(runtime = null) {
             this.runtime = runtime;
             this.items = new Map();
-            this.includeUserContent = false;
-        }
-        setIncludeUserContent(value) {
-            this.includeUserContent = value;
-            if (value)
-                return 0;
-            let removed = 0;
-            for (const [url, item] of this.items) {
-                const keep = [...item.sources].some(source => DAI.shouldIncludeAsset(url, source, false));
-                if (!keep) {
-                    this.items.delete(url);
-                    removed++;
-                }
-            }
-            return removed;
-        }
-        isUserContentEnabled() {
-            return this.includeUserContent;
         }
         clear() {
             this.items.clear();
@@ -530,15 +434,10 @@ var DAI;
         }
         add(raw, source, moduleId) {
             const url = DAI.normalizeUrl(raw, this.runtime);
-            if (!url || url.endsWith("/"))
+            if (!url || !DAI.isStaticClientAssetUrl(url))
                 return false;
-            if (!DAI.shouldIncludeAsset(url, source, this.includeUserContent))
-                return false;
-            let extension = DAI.getExtension(url);
-            if (!extension && /(?:cdn\.discordapp\.com|media\.discordapp\.net)/i.test(url)) {
-                extension = "webp";
-            }
-            if (!DAI.EXTENSIONS.has(extension) && !url.startsWith("data:") && !url.startsWith("blob:"))
+            const extension = DAI.getExtension(url);
+            if (!DAI.EXTENSIONS.has(extension))
                 return false;
             const existing = this.items.get(url);
             if (existing) {
@@ -585,14 +484,7 @@ var DAI;
             this.registry = registry;
             this.chunkIds = new Set();
             this.runtime = null;
-            this.includeRawAssetModules = false;
-            this.moduleCache = new WeakMap();
-        }
-        setIncludeRawAssetModules(value) {
-            this.includeRawAssetModules = value;
-        }
-        isRawAssetModulesEnabled() {
-            return this.includeRawAssetModules;
+            this.parsedModules = new WeakMap();
         }
         connect() {
             try {
@@ -614,14 +506,14 @@ var DAI;
             const before = this.registry.size();
             const modules = this.runtime?.m;
             if (!modules)
-                return { added: 0, scannedModules: 0, discoveredChunks: 0 };
+                return { added: 0, scannedModules: 0, discoveredChunks: 0, skippedAssets: 0 };
             this.chunkIds.clear();
             const assetRe = DAI.assetRegex();
             const chunkRe = /\.e\(\s*["']?([\w$-]+)["']?\s*\)/g;
-            let scanned = 0;
+            let scannedModules = 0;
             let skippedAssets = 0;
             for (const [id, factory] of Object.entries(modules)) {
-                let parsed = this.moduleCache.get(factory);
+                let parsed = this.parsedModules.get(factory);
                 if (!parsed) {
                     let code = "";
                     try {
@@ -639,60 +531,31 @@ var DAI;
                     const chunks = [];
                     while ((match = chunkRe.exec(code)))
                         chunks.push(match[1]);
-                    const imageAssetCount = assets.reduce((count, raw) => {
-                        const normalized = DAI.normalizeUrl(raw, this.runtime);
-                        return normalized && DAI.IMAGE_EXTENSIONS.has(DAI.getExtension(normalized)) ? count + 1 : count;
-                    }, 0);
-                    const normalizedAssets = assets
-                        .map(raw => DAI.normalizeUrl(raw, this.runtime))
-                        .filter((value) => Boolean(value));
-                    const bareHashedSvgModule = normalizedAssets.length > 0 &&
-                        normalizedAssets.length <= 2 &&
-                        chunks.length === 0 &&
-                        normalizedAssets.every(url => {
-                            const file = DAI.fileName(url);
-                            return /^[a-f0-9_-]{8,}\.svg(?:\?|$)/i.test(file);
-                        }) &&
-                        code.length <= 1400;
-                    parsed = {
-                        assets,
-                        chunks,
-                        imageAssetCount,
-                        emojiLike: /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(code),
-                        avatarLike: /(default.?avatar|avatar.?asset|default.?profile|embed.?avatar)/i.test(code),
-                        stickerLike: /(sticker|sticker.?pack|sticker.?asset)/i.test(code),
-                        profileLike: /(profile.?effect|avatar.?decoration|profile.?decoration|collectibles?)/i.test(code),
-                        codeLength: code.length,
-                        bareHashedSvgModule
-                    };
-                    this.moduleCache.set(factory, parsed);
+                    parsed = { assets, chunks };
+                    this.parsedModules.set(factory, parsed);
                 }
-                scanned++;
-                parsed.chunks.forEach(chunkId => this.chunkIds.add(chunkId));
-                const broadMode = this.registry.isUserContentEnabled();
-                const rawMode = this.includeRawAssetModules;
-                const noisyEmojiModule = !broadMode && parsed.emojiLike && parsed.imageAssetCount >= 3;
-                const noisyAvatarModule = !broadMode && parsed.avatarLike && parsed.imageAssetCount >= 2;
-                const denseImageCatalog = !broadMode && parsed.imageAssetCount >= 64;
+                scannedModules++;
+                parsed.chunks.forEach(chunk => this.chunkIds.add(chunk));
                 for (const raw of parsed.assets) {
                     const normalized = DAI.normalizeUrl(raw, this.runtime);
-                    const extension = normalized ? DAI.getExtension(normalized) : "";
-                    const image = DAI.IMAGE_EXTENSIONS.has(extension);
-                    const rasterImage = image && extension !== "svg";
-                    const contextualNoise = !broadMode &&
-                        rasterImage &&
-                        (parsed.emojiLike || parsed.avatarLike || parsed.stickerLike || parsed.profileLike);
-                    const hiddenBareSvg = !rawMode && parsed.bareHashedSvgModule && extension === "svg";
-                    if (image && (noisyEmojiModule || noisyAvatarModule || denseImageCatalog || contextualNoise || hiddenBareSvg)) {
+                    if (!normalized || !DAI.isStaticClientAssetUrl(normalized)) {
                         skippedAssets++;
                         continue;
                     }
-                    this.registry.add(raw, "webpack", id);
+                    const extension = DAI.getExtension(normalized);
+                    // Görselleri Webpack modül haritasından körlemesine eklemiyoruz.
+                    // Emoji/flag/illustration kataloglarının büyük kısmı burada tutuluyor.
+                    // Gerçekten yüklenmiş görseller Performance/CSS taramalarından gelir.
+                    if (DAI.IMAGE_EXTENSIONS.has(extension)) {
+                        skippedAssets++;
+                        continue;
+                    }
+                    this.registry.add(normalized, "webpack", id);
                 }
             }
             return {
                 added: this.registry.size() - before,
-                scannedModules: scanned,
+                scannedModules,
                 discoveredChunks: this.chunkIds.size,
                 skippedAssets
             };
@@ -707,7 +570,7 @@ var DAI;
                     return null;
                 const base = this.runtime?.p || location.origin + "/";
                 const url = new URL(relative, base).href;
-                return DAI.isDiscordOwnedUrl(url) ? url : null;
+                return DAI.isStaticClientAssetUrl(url) ? url : null;
             }
             catch {
                 return null;
@@ -730,15 +593,16 @@ var DAI;
                     return false;
                 seen.add(item.url);
                 return true;
-            }).slice(0, 500);
-            let next = 0;
+            }).slice(0, 300);
+            let cursor = 0;
             let done = 0;
             let failed = 0;
+            let skippedAssets = 0;
+            const workers = Math.min(3, Math.max(1, unique.length));
             const assetRe = DAI.assetRegex();
-            const workers = Math.min(4, unique.length || 1);
             const worker = async () => {
-                while (next < unique.length && !signal.aborted) {
-                    const item = unique[next++];
+                while (cursor < unique.length && !signal.aborted) {
+                    const item = unique[cursor++];
                     try {
                         const response = await fetch(item.url, {
                             method: "GET",
@@ -750,27 +614,22 @@ var DAI;
                             throw new Error(String(response.status));
                         const text = await response.text();
                         assetRe.lastIndex = 0;
-                        const assets = [];
                         let match;
-                        while ((match = assetRe.exec(text)))
-                            assets.push(match[0]);
-                        const broadMode = this.registry.isUserContentEnabled();
-                        const imageAssetCount = assets.reduce((count, raw) => {
-                            const normalized = DAI.normalizeUrl(raw, this.runtime);
-                            return normalized && DAI.IMAGE_EXTENSIONS.has(DAI.getExtension(normalized)) ? count + 1 : count;
-                        }, 0);
-                        const emojiHeavy = !broadMode &&
-                            imageAssetCount >= 24 &&
-                            /(emoji|twemoji|unicode.?emoji|emoji.?asset|emoji.?sprite)/i.test(text);
-                        const avatarHeavy = !broadMode &&
-                            imageAssetCount >= 8 &&
-                            /(default.?avatar|avatar.?asset|default.?profile)/i.test(text);
-                        for (const raw of assets) {
-                            const normalized = DAI.normalizeUrl(raw, this.runtime);
-                            const image = Boolean(normalized && DAI.IMAGE_EXTENSIONS.has(DAI.getExtension(normalized)));
-                            if (image && (emojiHeavy || avatarHeavy))
+                        while ((match = assetRe.exec(text))) {
+                            const normalized = DAI.normalizeUrl(match[0], this.runtime);
+                            if (!normalized || !DAI.isStaticClientAssetUrl(normalized)) {
+                                skippedAssets++;
                                 continue;
-                            this.registry.add(raw, item.source);
+                            }
+                            const extension = DAI.getExtension(normalized);
+                            const image = DAI.IMAGE_EXTENSIONS.has(extension);
+                            // JS chunk içindeki ham image kataloglarını almıyoruz.
+                            // CSS chunk içindeki image URL'leri stil tarafından gerçekten referanslandığı için güvenilir.
+                            if (image && item.source !== "lazy-css") {
+                                skippedAssets++;
+                                continue;
+                            }
+                            this.registry.add(normalized, item.source);
                         }
                     }
                     catch {
@@ -788,7 +647,8 @@ var DAI;
                 added: this.registry.size() - before,
                 scannedResources: done,
                 failedResources: failed,
-                discoveredChunks: this.chunkIds.size
+                discoveredChunks: this.chunkIds.size,
+                skippedAssets
             };
         }
     }
@@ -796,28 +656,17 @@ var DAI;
 })(DAI || (DAI = {}));
 var DAI;
 (function (DAI) {
-    function scanDom(registry) {
-        const before = registry.size();
-        const elements = document.querySelectorAll("img,video,audio,source,link,script");
-        for (const element of elements) {
-            for (const attr of ["src", "href", "poster"]) {
-                const value = element.getAttribute(attr);
-                if (value)
-                    registry.add(value, "dom");
-            }
-        }
-        return { added: registry.size() - before, scannedResources: elements.length };
-    }
-    DAI.scanDom = scanDom;
-})(DAI || (DAI = {}));
-var DAI;
-(function (DAI) {
     function scanPerformance(registry) {
         const before = registry.size();
         const entries = performance.getEntriesByType("resource");
-        for (const entry of entries)
+        let scanned = 0;
+        for (const entry of entries) {
+            if (!DAI.isStaticClientAssetUrl(entry.name))
+                continue;
+            scanned++;
             registry.add(entry.name, "performance");
-        return { added: registry.size() - before, scannedResources: entries.length };
+        }
+        return { added: registry.size() - before, scannedResources: scanned };
     }
     DAI.scanPerformance = scanPerformance;
 })(DAI || (DAI = {}));
@@ -826,10 +675,9 @@ var DAI;
     function scanCss(registry) {
         const before = registry.size();
         const urlRe = /url\(\s*["']?([^"')\s]+)["']?\s*\)/gi;
-        let count = 0;
+        let scanned = 0;
         const walk = (rules) => {
             for (const rule of Array.from(rules)) {
-                count++;
                 const nested = rule.cssRules;
                 if (nested)
                     walk(nested);
@@ -838,8 +686,13 @@ var DAI;
                     continue;
                 urlRe.lastIndex = 0;
                 let match;
-                while ((match = urlRe.exec(text)))
-                    registry.add(match[1], "css");
+                while ((match = urlRe.exec(text))) {
+                    const normalized = DAI.normalizeUrl(match[1]);
+                    if (!normalized || !DAI.isStaticClientAssetUrl(normalized))
+                        continue;
+                    scanned++;
+                    registry.add(normalized, "css");
+                }
             }
         };
         for (const sheet of Array.from(document.styleSheets)) {
@@ -848,10 +701,10 @@ var DAI;
                     walk(sheet.cssRules);
             }
             catch {
-                // Cross-origin stylesheets may not expose cssRules.
+                // Cross-origin stylesheets are intentionally ignored.
             }
         }
-        return { added: registry.size() - before, scannedResources: count };
+        return { added: registry.size() - before, scannedResources: scanned };
     }
     DAI.scanCss = scanCss;
 })(DAI || (DAI = {}));
@@ -869,525 +722,556 @@ var DAI;
   pointer-events: none !important;
 }
 
-.dai-root {
+* {
+  box-sizing: border-box;
+}
+
+.app {
   position: fixed;
-  pointer-events: auto;
   inset: 0;
-  z-index: 2147483646;
-  color: #e7e9ee;
+  pointer-events: auto;
+  color: #e6e9ef;
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.dai-root * { box-sizing: border-box; }
-
-.dai-root .dai-backdrop {
+.backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(6, 8, 12, .72);
-  backdrop-filter: blur(8px);
+  background: rgba(5, 7, 10, .72);
+  backdrop-filter: blur(7px);
 }
 
-.dai-root .dai-panel {
+.panel {
   position: absolute;
-  inset: 4vh 3vw;
-  max-width: 1500px;
+  inset: 3vh 2.5vw;
+  max-width: 1540px;
   margin: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 18px;
+  border-radius: 16px;
   background: #17191f;
-  box-shadow: 0 28px 90px rgba(0,0,0,.46);
+  box-shadow: 0 26px 90px rgba(0,0,0,.5);
 }
 
-.dai-root .dai-head {
-  min-height: 70px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  background: #181a20;
-}
-
-.dai-root .dai-brand { min-width: 230px; }
-.dai-root .dai-title { font-size: 15px; font-weight: 720; letter-spacing: -.15px; }
-.dai-root .dai-sub { margin-top: 3px; color: #7f8795; font-size: 10px; }
-.dai-root .dai-spacer { flex: 1; }
-
-.dai-root button,
-.dai-root input,
-.dai-root select {
+button,
+input,
+select {
   font: inherit;
 }
 
-.dai-root button {
+button {
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 9px;
+  border-radius: 8px;
   background: #22252c;
-  color: #dfe2e8;
-  padding: 8px 11px;
+  color: #dce0e7;
   cursor: pointer;
   transition: background .14s ease, border-color .14s ease, color .14s ease;
 }
 
-.dai-root button:hover {
-  background: #292d35;
-  border-color: rgba(255,255,255,.14);
+button:hover {
+  background: #2a2e36;
+  border-color: rgba(255,255,255,.15);
 }
 
-.dai-root button:disabled {
+button:disabled {
   opacity: .42;
   cursor: default;
 }
 
-.dai-root .dai-primary {
+.header {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  background: #181a20;
+}
+
+.brand {
+  display: grid;
+  gap: 3px;
+  min-width: 220px;
+}
+
+.brand strong {
+  font-size: 14px;
+  font-weight: 720;
+  letter-spacing: -.1px;
+}
+
+.brand span {
+  color: #7d8593;
+  font-size: 10px;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.header-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+}
+
+.header-actions .primary {
+  border-color: #6c76f3;
   background: #5865f2;
-  border-color: #6772f4;
   color: white;
 }
 
-.dai-root .dai-primary:hover { background: #626ef3; }
-
-.dai-root .dai-close {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  font-size: 18px;
+.header-actions .primary:hover {
+  background: #6671f3;
 }
 
-.dai-root .dai-tools {
+.icon-button {
+  width: 34px;
+  min-width: 34px;
+  padding: 0 !important;
+  font-size: 17px;
+}
+
+.filters {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px 150px 150px;
+  grid-template-columns: minmax(260px, 1fr) 150px 150px 170px;
   gap: 8px;
-  padding: 12px 18px 9px;
+  padding: 12px 16px 9px;
 }
 
-.dai-root input,
-.dai-root select {
+input,
+select {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 9px;
+  border-radius: 8px;
+  outline: none;
   background: #20232a;
   color: #e4e7ec;
   padding: 0 10px;
-  outline: none;
 }
 
-.dai-root input::placeholder { color: #666e7c; }
+input::placeholder {
+  color: #666e7b;
+}
 
-.dai-root input:focus,
-.dai-root select:focus {
+input:focus,
+select:focus {
   border-color: rgba(88,101,242,.72);
 }
 
-.dai-root .dai-kinds {
+.kinds {
   display: flex;
   gap: 4px;
-  padding: 0 18px 9px;
   overflow-x: auto;
-  scrollbar-width: none;
+  padding: 0 16px 9px;
   border-bottom: 1px solid rgba(255,255,255,.055);
+  scrollbar-width: none;
 }
 
-.dai-root .dai-kinds::-webkit-scrollbar { display: none; }
+.kinds::-webkit-scrollbar {
+  display: none;
+}
 
-.dai-root .dai-kinds button {
+.kinds button {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px;
+  min-height: 30px;
+  padding: 0 9px;
   border-color: transparent;
-  border-radius: 7px;
   background: transparent;
-  color: #858d9a;
+  color: #8c94a1;
   font-size: 10px;
 }
 
-.dai-root .dai-kinds button b {
-  min-width: 18px;
-  color: #626a77;
+.kinds button:hover {
+  background: #20232a;
+  color: #d0d5dc;
+}
+
+.kinds button.active {
+  border-color: rgba(88,101,242,.24);
+  background: rgba(88,101,242,.13);
+  color: #eef0ff;
+}
+
+.kinds b {
+  color: #69717f;
   font-size: 9px;
   font-weight: 650;
-  text-align: right;
 }
 
-.dai-root .dai-kinds button:hover {
-  background: #20232a;
-  color: #cdd2da;
-}
-
-.dai-root .dai-kinds button.is-active {
-  background: #242832;
-  color: #eef0f4;
-  box-shadow: inset 0 -2px #5865f2;
-}
-
-.dai-root .dai-bulk {
+.bulk {
   min-height: 44px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 18px;
+  padding: 7px 16px;
   border-bottom: 1px solid rgba(255,255,255,.055);
 }
 
-.dai-root .dai-bulk button {
-  padding: 6px 9px;
+.bulk button {
+  min-height: 30px;
+  padding: 0 9px;
   font-size: 10px;
 }
 
-.dai-root .dai-bulk button.is-active {
-  border-color: rgba(88,101,242,.5);
-  background: rgba(88,101,242,.13);
-  color: #dfe2ff;
-}
-
-.dai-root .dai-content-toggle {
-  color: #8f97a4;
-}
-
-.dai-root .dai-content-toggle.is-active {
-  border-color: rgba(250,166,26,.34);
-  background: rgba(250,166,26,.09);
-  color: #f2c26f;
-}
-
-.dai-root .dai-raw-toggle {
-  color: #8f97a4;
-}
-
-.dai-root .dai-raw-toggle.is-active {
-  border-color: rgba(88,101,242,.42);
-  background: rgba(88,101,242,.12);
-  color: #cfd3ff;
-}
-
-.dai-root .dai-bulk select {
-  width: 126px;
-  height: 31px;
+.bulk select {
+  width: 125px;
+  height: 30px;
   font-size: 10px;
 }
 
-.dai-root .dai-progress {
+.grow {
+  flex: 1;
+}
+
+.progress {
   height: 2px;
   background: rgba(255,255,255,.04);
   overflow: hidden;
 }
 
-.dai-root .dai-progress > i {
+.progress i {
   display: block;
-  width: var(--p, 0%);
+  width: 0;
   height: 100%;
   background: #5865f2;
-  transition: width .15s linear;
+  transition: width .14s linear;
 }
 
-.dai-root .dai-status {
+.statusbar {
+  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 13px;
-  min-height: 34px;
-  padding: 8px 18px;
-  color: #858d9a;
-  font-size: 10.5px;
+  padding: 8px 16px;
   border-bottom: 1px solid rgba(255,255,255,.05);
+  color: #858e9b;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
-.dai-root .dai-status strong { color: #e4e7ec; }
+.statusbar b {
+  color: #e4e7ec;
+}
 
-.dai-root .dai-grid {
+.statusbar .status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grid {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 14px 18px 20px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
   align-content: start;
   gap: 12px;
+  padding: 14px 16px 20px;
   scrollbar-width: thin;
   scrollbar-color: #555b66 transparent;
 }
 
-.dai-root .dai-card {
-  position: relative;
+.card {
   min-width: 0;
+  height: 286px;
+  display: grid;
+  grid-template-rows: 148px 138px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.075);
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 13px;
-  background: #1c1f25;
-  transition: border-color .14s ease, background .14s ease, transform .14s ease;
+  background: #1d2026;
+  transition: border-color .14s ease, transform .14s ease;
 }
 
-.dai-root .dai-card:hover {
-  border-color: rgba(255,255,255,.14);
-  background: #1e2128;
+.card:hover {
+  border-color: rgba(255,255,255,.15);
   transform: translateY(-1px);
 }
 
-.dai-root .dai-card.is-selected {
-  border-color: rgba(88,101,242,.82);
+.card.selected {
+  border-color: rgba(88,101,242,.86);
   box-shadow: inset 0 0 0 1px rgba(88,101,242,.16);
 }
 
-.dai-root .dai-preview {
+.preview {
   position: relative;
-  aspect-ratio: 16 / 9;
+  min-width: 0;
+  min-height: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background:
-    linear-gradient(45deg, rgba(255,255,255,.015) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255,255,255,.015) 25%, transparent 25%),
-    #111318;
-  background-size: 18px 18px;
+  background: #111318;
 }
 
-.dai-root .dai-preview img,
-.dai-root .dai-preview video {
+.preview img,
+.preview video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.dai-root .dai-preview-top {
+.preview-meta {
   position: absolute;
-  inset: 8px 8px auto 8px;
+  top: 8px;
+  left: 8px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 5px;
   pointer-events: none;
 }
 
-.dai-root .dai-badges {
-  display: flex;
-  gap: 5px;
-  min-width: 0;
-}
-
-.dai-root .dai-kind-badge,
-.dai-root .dai-ext-badge {
+.preview-meta span {
   padding: 4px 6px;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.09);
   border-radius: 6px;
-  background: rgba(13,15,19,.78);
-  color: #d7dbe2;
-  backdrop-filter: blur(6px);
+  background: rgba(12,14,18,.8);
+  color: #cbd0d8;
   font-size: 8px;
   font-weight: 650;
-  letter-spacing: .025em;
+  backdrop-filter: blur(5px);
 }
 
-.dai-root .dai-ext-badge {
-  color: #8f98a6;
-  font-weight: 600;
-}
-
-.dai-root .dai-select {
+.select {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   width: 27px;
   height: 27px;
-  flex: 0 0 27px;
   padding: 0;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255,255,255,.18);
   border-radius: 50%;
-  background: rgba(13,15,19,.72);
+  background: rgba(12,14,18,.78);
   color: white;
-  opacity: .55;
-  pointer-events: auto;
-  backdrop-filter: blur(6px);
 }
 
-.dai-root .dai-card:hover .dai-select,
-.dai-root .dai-card.is-selected .dai-select {
-  opacity: 1;
-}
-
-.dai-root .dai-card.is-selected .dai-select {
-  border-color: #6d78f4;
+.card.selected .select {
+  border-color: #6f79f4;
   background: #5865f2;
 }
 
-.dai-root .dai-select span {
-  font-size: 13px;
-  line-height: 1;
+.card-body {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 20px 18px 24px 32px;
+  gap: 5px;
+  padding: 10px;
 }
 
-.dai-root .dai-filetype,
-.dai-root .dai-fonttype {
+.filename {
+  overflow: hidden;
+  color: #e8ebf0;
+  font-size: 11.5px;
+  font-weight: 680;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  color: #747d8b;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.meta span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.source-chip {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.055);
+  color: #9ca4b0;
+  font-size: 8.5px;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+}
+
+.card-actions button {
+  min-width: 0;
+  height: 32px;
+  padding: 0 5px;
+  color: #b3bac5;
+  font-size: 9.5px;
+}
+
+.card-actions button:hover {
+  color: white;
+}
+
+.card-actions .download {
+  border-color: rgba(88,101,242,.3);
+  background: rgba(88,101,242,.1);
+  color: #d0d4ff;
+}
+
+.file-preview {
   display: grid;
   place-items: center;
-  gap: 4px;
-  color: #6d7582;
+  gap: 5px;
+  color: #7f8794;
   text-transform: uppercase;
 }
 
-.dai-root .dai-filetype b {
-  color: #929aa7;
-  font-size: 18px;
-  letter-spacing: .08em;
+.file-preview b {
+  color: #a5acb7;
+  font-size: 22px;
+  letter-spacing: .06em;
 }
 
-.dai-root .dai-filetype span,
-.dai-root .dai-fonttype span {
+.file-preview span {
   font-size: 8px;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
 }
 
-.dai-root .dai-fonttype b {
-  color: #aeb4be;
+.font-preview b {
   font-family: Georgia, serif;
   font-size: 36px;
   font-weight: 500;
   text-transform: none;
 }
 
-.dai-root .dai-body {
-  padding: 11px 11px 10px;
-}
-
-.dai-root .dai-name {
-  overflow: hidden;
-  color: #e6e9ee;
-  font-size: 12px;
-  font-weight: 680;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dai-root .dai-location {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  margin-top: 5px;
-  color: #707986;
-  font-size: 9.5px;
-  white-space: nowrap;
-}
-
-.dai-root .dai-host {
-  min-width: 0;
-  overflow: hidden;
-  color: #858e9c;
-  text-overflow: ellipsis;
-}
-
-.dai-root .dai-dot { color: #4f5662; }
-
-.dai-root .dai-footer {
-  display: grid;
-  gap: 9px;
-  margin-top: 10px;
-}
-
-.dai-root .dai-chips {
-  min-height: 19px;
-  display: flex;
-  gap: 5px;
-  overflow: hidden;
-}
-
-.dai-root .dai-chip {
-  flex: 0 0 auto;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgba(255,255,255,.055);
-  color: #9da5b1;
-  font-size: 8.5px;
-}
-
-.dai-root .dai-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 5px;
-}
-
-.dai-root .dai-actions button {
-  min-width: 0;
-  padding: 6px 5px;
-  border-radius: 7px;
-  background: #22252c;
-  color: #abb2bd;
-  font-size: 9.5px;
-}
-
-.dai-root .dai-actions button:hover {
-  color: #eef0f4;
-}
-
-.dai-root .dai-actions .dai-download {
-  border-color: rgba(88,101,242,.3);
-  color: #cfd3ff;
-  background: rgba(88,101,242,.1);
-}
-
-.dai-root .dai-actions .dai-download:hover {
-  background: rgba(88,101,242,.18);
-}
-
-.dai-root .dai-empty {
+.empty {
   grid-column: 1 / -1;
-  padding: 70px 20px;
-  color: #747d8b;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  color: #737c89;
   text-align: center;
 }
 
-.dai-load-more {
+.empty strong {
+  color: #c7ccd4;
+  font-size: 13px;
+}
+
+.empty span {
+  font-size: 10px;
+}
+
+.load-more {
   grid-column: 1 / -1;
   display: grid;
   place-items: center;
-  gap: 7px;
-  padding: 18px 0 8px;
+  gap: 6px;
+  padding: 14px 0 4px;
 }
 
-.dai-load-more button {
-  min-width: 180px;
-  padding: 9px 14px;
+.load-more button {
+  min-width: 190px;
+  min-height: 34px;
+  padding: 0 12px;
 }
 
-.dai-load-more button span {
-  color: #8f98ff;
-  margin-left: 4px;
-}
-
-.dai-load-more small {
-  color: #68717f;
+.load-more span {
+  color: #6f7886;
   font-size: 9px;
 }
 
 @media (max-width: 1000px) {
-  .dai-root .dai-panel { inset: 2vh 2vw; }
-  .dai-root .dai-tools { grid-template-columns: 1fr 1fr; }
-  .dai-root .dai-tools input { grid-column: 1 / -1; }
-  .dai-root .dai-brand { min-width: 0; }
-  .dai-root .dai-head .dai-secondary { display: none; }
-  .dai-root .dai-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .panel {
+    inset: 2vh 2vw;
+  }
+
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filters input {
+    grid-column: 1 / -1;
+  }
+
+  .header-actions button:not(.primary):not(.icon-button) {
+    display: none;
+  }
 }
 
 @media (max-width: 700px) {
-  .dai-root .dai-head { padding: 12px; }
-  .dai-root .dai-tools { padding-left: 12px; padding-right: 12px; }
-  .dai-root .dai-kinds { padding-left: 12px; padding-right: 12px; }
-  .dai-root .dai-bulk { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; }
-  .dai-root .dai-bulk .dai-spacer { display: none; }
-  .dai-root .dai-status { padding-left: 12px; padding-right: 12px; overflow-x: auto; white-space: nowrap; }
-  .dai-root .dai-grid { padding: 12px; }
+  .panel {
+    inset: 0;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 10px 12px;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .filters input {
+    grid-column: auto;
+  }
+
+  .kinds,
+  .bulk,
+  .statusbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .bulk {
+    flex-wrap: wrap;
+  }
+
+  .bulk .grow {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    padding: 12px;
+  }
 }
 
-@media (max-width: 560px) {
-  .dai-root .dai-panel { inset: 0; border-radius: 0; }
-  .dai-root .dai-tools { grid-template-columns: 1fr; }
-  .dai-root .dai-tools input { grid-column: auto; }
-  .dai-root .dai-bulk select,
-  .dai-root .dai-bulk button[data-action="json"] { display: none; }
-  .dai-root .dai-grid { grid-template-columns: 1fr; }
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bulk select {
+    display: none;
+  }
 }
 `;
 })(DAI || (DAI = {}));
@@ -1399,10 +1283,8 @@ var DAI;
             this.visible = [];
             this.selected = new Set();
             this.kind = "all";
-            this.selectedOnly = false;
-            this.renderLimit = 60;
-            this.renderStep = 60;
-            this.layoutRepairApplied = false;
+            this.renderLimit = 80;
+            this.renderStep = 80;
             this.abortController = new AbortController();
             this.closed = false;
             this.registry = new DAI.AssetRegistry();
@@ -1413,8 +1295,8 @@ var DAI;
             };
         }
         async start() {
-            this.webpack.connect();
             this.renderShell();
+            this.webpack.connect();
             await this.rescan();
         }
         renderShell() {
@@ -1424,71 +1306,90 @@ var DAI;
             this.surface = this.root.attachShadow({ mode: "open" });
             this.surface.innerHTML = `
         <style>${DAI.STYLES}</style>
-        <div class="dai-root">
-        <div class="dai-backdrop"></div>
-        <section class="dai-panel" role="dialog" aria-modal="true" aria-label="Discord Asset Inspector">
-          <header class="dai-head">
-            <div class="dai-brand"><div class="dai-title">Discord Asset Inspector</div><div class="dai-sub">v${DAI.VERSION} · yerel varlık inceleme aracı</div></div>
-            <div class="dai-spacer"></div>
-            <button class="dai-secondary" data-action="rescan">Yeniden Tara</button>
-            <button class="dai-primary" data-action="lazy">Ek kaynakları tara</button>
-            <button class="dai-secondary" data-action="json">JSON dışa aktar</button>
-            <button class="dai-close" data-action="close" aria-label="Kapat">×</button>
-          </header>
-          <div class="dai-tools">
-            <input data-role="search" placeholder="Dosya adı, URL, kaynak veya modül ara…" autocomplete="off" />
-            <select data-role="extension"><option value="">Tüm uzantılar</option></select>
-            <select data-role="source"><option value="">Tüm kaynaklar</option></select>
-            <select data-role="sort"><option value="name">Ada göre</option><option value="extension">Uzantıya göre</option><option value="source">Kaynak sayısı</option><option value="module">Modül sayısı</option></select>
-          </div>
-          <div class="dai-kinds">
-            <button class="is-active" data-action="kind" data-kind="all">Tümü <b data-kind-count="all">0</b></button>
-            <button data-action="kind" data-kind="image">Görseller <b data-kind-count="image">0</b></button>
-            <button data-action="kind" data-kind="video">Videolar <b data-kind-count="video">0</b></button>
-            <button data-action="kind" data-kind="audio">Sesler <b data-kind-count="audio">0</b></button>
-            <button data-action="kind" data-kind="font">Yazı tipleri <b data-kind-count="font">0</b></button>
-            <button data-action="kind" data-kind="code">Kod & veri <b data-kind-count="code">0</b></button>
-            <button data-action="kind" data-kind="other">Diğer <b data-kind-count="other">0</b></button>
-          </div>
-          <div class="dai-bulk">
-            <button data-action="select-visible">Görünenleri seç</button>
-            <button data-action="selected-only" aria-pressed="false">Yalnız seçilenler</button>
-            <button data-action="clear-selection">Temizle</button>
-            <button class="dai-content-toggle" data-action="user-content" aria-pressed="false">Kullanıcı içeriği: Kapalı</button>
-            <button class="dai-raw-toggle" data-action="raw-assets" aria-pressed="false">Ham paket varlıkları: Kapalı</button>
-            <span class="dai-spacer"></span>
-            <select data-role="copy-format" aria-label="Kopyalama biçimi"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
-            <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
-          </div>
-          <div class="dai-progress"><i data-role="progress"></i></div>
-          <div class="dai-status"><span><strong data-role="count">0</strong> görünür</span><span><strong data-role="selected-count">0</strong> seçili</span><span><strong data-role="source-count">0</strong> kaynak türü</span><span data-role="status">Hazır</span></div>
-          <div class="dai-grid" data-role="grid"></div>
-        </section>
-        </div>`;
+        <div class="app">
+          <div class="backdrop" data-action="close"></div>
+          <section class="panel" role="dialog" aria-modal="true" aria-label="Discord Asset Inspector">
+            <header class="header">
+              <div class="brand">
+                <strong>Discord Asset Inspector</strong>
+                <span>v${DAI.VERSION} · yalnız Discord istemci varlıkları</span>
+              </div>
+              <div class="header-actions">
+                <button data-action="rescan">Yeniden tara</button>
+                <button class="primary" data-action="lazy">Ek paketleri tara</button>
+                <button data-action="json">JSON dışa aktar</button>
+                <button class="icon-button" data-action="close" aria-label="Kapat">×</button>
+              </div>
+            </header>
+
+            <div class="filters">
+              <input data-role="search" placeholder="Dosya adı, URL veya modül ara…" autocomplete="off" />
+              <select data-role="extension"><option value="">Tüm uzantılar</option></select>
+              <select data-role="source"><option value="">Tüm kaynaklar</option></select>
+              <select data-role="sort">
+                <option value="name">Ada göre</option>
+                <option value="extension">Uzantıya göre</option>
+                <option value="source">Kaynak sayısına göre</option>
+                <option value="module">Modül sayısına göre</option>
+              </select>
+            </div>
+
+            <nav class="kinds" aria-label="Varlık türleri">
+              <button class="active" data-action="kind" data-kind="all">Tümü <b data-count-kind="all">0</b></button>
+              <button data-action="kind" data-kind="image">Görseller <b data-count-kind="image">0</b></button>
+              <button data-action="kind" data-kind="video">Videolar <b data-count-kind="video">0</b></button>
+              <button data-action="kind" data-kind="audio">Sesler <b data-count-kind="audio">0</b></button>
+              <button data-action="kind" data-kind="font">Yazı tipleri <b data-count-kind="font">0</b></button>
+              <button data-action="kind" data-kind="code">Kod & veri <b data-count-kind="code">0</b></button>
+              <button data-action="kind" data-kind="other">Diğer <b data-count-kind="other">0</b></button>
+            </nav>
+
+            <div class="bulk">
+              <button data-action="select-visible">Görünenleri seç</button>
+              <button data-action="clear-selection">Seçimi temizle</button>
+              <span class="grow"></span>
+              <select data-role="copy-format" aria-label="Kopyalama biçimi">
+                <option value="url">URL</option>
+                <option value="markdown">Markdown</option>
+                <option value="css">CSS url()</option>
+                <option value="html">HTML</option>
+              </select>
+              <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
+            </div>
+
+            <div class="progress"><i data-role="progress"></i></div>
+
+            <div class="statusbar">
+              <span><b data-role="count">0</b> görünür</span>
+              <span><b data-role="selected-count">0</b> seçili</span>
+              <span><b data-role="source-count">0</b> kaynak türü</span>
+              <span class="status" data-role="status">Hazır</span>
+            </div>
+
+            <main class="grid" data-role="grid"></main>
+          </section>
+        </div>
+      `;
             document.body.appendChild(this.root);
             this.grid = this.must("[data-role=grid]");
             this.countEl = this.must("[data-role=count]");
+            this.selectedCountEl = this.must("[data-role=selected-count]");
             this.sourceCountEl = this.must("[data-role=source-count]");
-            this.statusTextEl = this.must("[data-role=status]");
+            this.statusEl = this.must("[data-role=status]");
             this.progressEl = this.must("[data-role=progress]");
             this.searchEl = this.must("[data-role=search]");
             this.extensionEl = this.must("[data-role=extension]");
             this.sourceEl = this.must("[data-role=source]");
             this.sortEl = this.must("[data-role=sort]");
-            this.lazyButton = this.must("[data-action=lazy]");
             this.copyFormatEl = this.must("[data-role=copy-format]");
             this.copySelectedButton = this.must("[data-action=copy-selected]");
-            this.selectedCountEl = this.must("[data-role=selected-count]");
-            this.selectedOnlyButton = this.must("[data-action=selected-only]");
-            this.userContentButton = this.must("[data-action=user-content]");
-            this.rawAssetsButton = this.must("[data-action=raw-assets]");
+            this.lazyButton = this.must("[data-action=lazy]");
             const refresh = DAI.debounce(() => this.resetRenderWindow(), 120);
             this.searchEl.addEventListener("input", refresh);
             this.extensionEl.addEventListener("change", () => this.resetRenderWindow());
             this.sourceEl.addEventListener("change", () => this.resetRenderWindow());
             this.sortEl.addEventListener("change", () => this.resetRenderWindow());
-            this.surface.addEventListener("click", event => this.handleClick(event));
-            this.surface.querySelector(".dai-backdrop")?.addEventListener("click", () => this.close());
+            this.surface.addEventListener("click", event => void this.handleClick(event));
             document.addEventListener("keydown", this.onKeydown, true);
         }
         must(selector) {
@@ -1498,7 +1399,7 @@ var DAI;
             return element;
         }
         async handleClick(event) {
-            const button = event.target.closest("button[data-action]");
+            const button = event.target.closest("[data-action]");
             if (!button)
                 return;
             const action = button.dataset.action;
@@ -1512,12 +1413,14 @@ var DAI;
                 return DAI.saveJson(this.registry.serialize(), `discord-assets-${Date.now()}.json`);
             if (action === "kind") {
                 this.kind = (button.dataset.kind || "all");
-                this.surface.querySelectorAll(".dai-kinds button").forEach(el => el.classList.toggle("is-active", el === button));
+                this.surface.querySelectorAll(".kinds button").forEach(item => {
+                    item.classList.toggle("active", item === button);
+                });
                 this.resetRenderWindow();
                 return;
             }
             if (action === "select-visible") {
-                this.visible.forEach(item => this.selected.add(item.url));
+                this.visible.slice(0, this.renderLimit).forEach(item => this.selected.add(item.url));
                 this.applyFilters();
                 return;
             }
@@ -1526,29 +1429,13 @@ var DAI;
                 this.applyFilters();
                 return;
             }
-            if (action === "selected-only") {
-                this.selectedOnly = !this.selectedOnly;
-                this.selectedOnlyButton.setAttribute("aria-pressed", String(this.selectedOnly));
-                this.selectedOnlyButton.classList.toggle("is-active", this.selectedOnly);
-                this.applyFilters();
-                return;
-            }
-            if (action === "user-content") {
-                const enabled = !this.registry.isUserContentEnabled();
-                this.registry.setIncludeUserContent(enabled);
-                this.userContentButton.setAttribute("aria-pressed", String(enabled));
-                this.userContentButton.classList.toggle("is-active", enabled);
-                this.userContentButton.textContent = `Kullanıcı içeriği: ${enabled ? "Açık" : "Kapalı"}`;
-                await this.rescan();
-                return;
-            }
-            if (action === "raw-assets") {
-                const enabled = !this.webpack.isRawAssetModulesEnabled();
-                this.webpack.setIncludeRawAssetModules(enabled);
-                this.rawAssetsButton.setAttribute("aria-pressed", String(enabled));
-                this.rawAssetsButton.classList.toggle("is-active", enabled);
-                this.rawAssetsButton.textContent = `Ham paket varlıkları: ${enabled ? "Açık" : "Kapalı"}`;
-                await this.rescan();
+            if (action === "copy-selected") {
+                const items = this.registry.values().filter(item => this.selected.has(item.url));
+                if (!items.length)
+                    return;
+                const format = this.copyFormatEl.value;
+                await DAI.copyText(items.map(item => DAI.formatCopy(item, format)).join("\n"));
+                this.setStatus(`${items.length} varlık kopyalandı.`);
                 return;
             }
             if (action === "load-more") {
@@ -1556,16 +1443,7 @@ var DAI;
                 this.renderCards();
                 return;
             }
-            if (action === "copy-selected") {
-                const items = this.registry.values().filter(item => this.selected.has(item.url));
-                if (!items.length)
-                    return;
-                const format = this.copyFormatEl.value;
-                await DAI.copyText(items.map(item => DAI.formatCopy(item, format)).join("\n"));
-                this.setStatus(`${items.length} seçili varlık kopyalandı.`);
-                return;
-            }
-            const card = button.closest(".dai-card");
+            const card = button.closest(".card");
             const url = card?.dataset.url;
             if (!url)
                 return;
@@ -1583,51 +1461,48 @@ var DAI;
             if (action === "copy") {
                 await DAI.copyText(DAI.formatCopy(item, this.copyFormatEl.value));
                 this.setStatus("Kopyalandı.");
+                return;
             }
-            else if (action === "open") {
+            if (action === "open") {
                 window.open(url, "_blank", "noopener,noreferrer");
+                return;
             }
-            else if (action === "download") {
+            if (action === "download") {
                 await this.downloadAsset(url);
             }
         }
         async rescan() {
             if (this.closed)
                 return;
-            this.setStatus("Temiz tarama başlatılıyor…");
             this.registry.clear();
             this.selected.clear();
             this.renderLimit = this.renderStep;
-            this.layoutRepairApplied = false;
+            this.setStatus("Discord istemci varlıkları taranıyor…");
             this.webpack.connect();
             const reports = [
-                this.webpack.scanLoadedModules(),
-                DAI.scanDom(this.registry),
-                DAI.scanCss(this.registry)
+                DAI.scanPerformance(this.registry),
+                DAI.scanCss(this.registry),
+                this.webpack.scanLoadedModules()
             ];
-            if (this.registry.isUserContentEnabled()) {
-                reports.push(DAI.scanPerformance(this.registry));
-            }
             this.rebuildFilters();
             this.applyFilters();
-            const scanned = reports.reduce((sum, report) => sum + (report.scannedResources || 0) + (report.scannedModules || 0), 0);
             const skipped = reports.reduce((sum, report) => sum + (report.skippedAssets || 0), 0);
-            this.setStatus(`Tarama tamamlandı · ${this.registry.size()} temiz varlık · ${skipped} gereksiz varlık filtrelendi · ${scanned} kaynak incelendi.`);
+            this.setStatus(`Tarama tamamlandı · ${this.registry.size()} istemci varlığı · ${skipped} ham paket girdisi atlandı.`);
         }
         async scanLazy() {
             if (this.closed || this.lazyButton.disabled)
                 return;
             this.lazyButton.disabled = true;
-            this.setStatus("Ek Discord kaynakları taranıyor…");
             this.setProgress(0);
+            this.setStatus("Ek Discord paketleri taranıyor…");
             try {
                 const report = await this.webpack.scanLazyResources(this.abortController.signal, (done, total) => {
                     this.setProgress(total ? (done / total) * 100 : 0);
-                    this.setStatus(`Ek tarama ${done}/${total}…`);
+                    this.setStatus(`Ek paketler taranıyor · ${done}/${total}`);
                 });
                 this.rebuildFilters();
                 this.applyFilters();
-                this.setStatus(`Ek tarama tamamlandı · ${report.added} yeni varlık · ${report.failedResources || 0} başarısız.`);
+                this.setStatus(`Ek tarama tamamlandı · ${report.added} yeni varlık · ${report.skippedAssets || 0} ham giriş atlandı · ${report.failedResources || 0} başarısız.`);
             }
             finally {
                 this.setProgress(0);
@@ -1635,16 +1510,20 @@ var DAI;
             }
         }
         rebuildFilters() {
-            const extension = this.extensionEl.value;
-            const source = this.sourceEl.value;
-            const extensions = [...new Set(this.registry.values().map(item => item.extension).filter(Boolean))].sort();
+            const previousExtension = this.extensionEl.value;
+            const previousSource = this.sourceEl.value;
+            const extensions = [...new Set(this.registry.values().map(item => item.extension))].sort();
             const sources = [...new Set(this.registry.values().flatMap(item => [...item.sources]))].sort();
-            this.extensionEl.innerHTML = `<option value="">Tüm uzantılar</option>${extensions.map(x => `<option value="${DAI.escapeHtml(x)}">${DAI.escapeHtml(x.toUpperCase())}</option>`).join("")}`;
-            this.sourceEl.innerHTML = `<option value="">Tüm kaynaklar</option>${sources.map(x => `<option value="${DAI.escapeHtml(x)}">${DAI.escapeHtml(DAI.sourceLabel(x))}</option>`).join("")}`;
-            if (extensions.includes(extension))
-                this.extensionEl.value = extension;
-            if (sources.includes(source))
-                this.sourceEl.value = source;
+            this.extensionEl.innerHTML =
+                '<option value="">Tüm uzantılar</option>' +
+                    extensions.map(value => `<option value="${DAI.escapeHtml(value)}">${DAI.escapeHtml(value.toUpperCase())}</option>`).join("");
+            this.sourceEl.innerHTML =
+                '<option value="">Tüm kaynaklar</option>' +
+                    sources.map(value => `<option value="${DAI.escapeHtml(value)}">${DAI.escapeHtml(DAI.sourceLabel(value))}</option>`).join("");
+            if (extensions.includes(previousExtension))
+                this.extensionEl.value = previousExtension;
+            if (sources.includes(previousSource))
+                this.sourceEl.value = previousSource;
         }
         resetRenderWindow() {
             this.renderLimit = this.renderStep;
@@ -1657,8 +1536,6 @@ var DAI;
             const sort = this.sortEl.value;
             this.visible = this.registry.values().filter(item => {
                 if (this.kind !== "all" && DAI.assetKind(item.extension) !== this.kind)
-                    return false;
-                if (this.selectedOnly && !this.selected.has(item.url))
                     return false;
                 if (extension && item.extension !== extension)
                     return false;
@@ -1680,166 +1557,131 @@ var DAI;
                     return b.modules.size - a.modules.size || a.name.localeCompare(b.name);
                 return a.name.localeCompare(b.name);
             });
-            this.renderCards();
             this.renderKindCounts();
+            this.renderCards();
             this.countEl.textContent = String(this.visible.length);
             this.selectedCountEl.textContent = String(this.selected.size);
             this.sourceCountEl.textContent = String(new Set(this.registry.values().flatMap(item => [...item.sources])).size);
             this.copySelectedButton.disabled = this.selected.size === 0;
-            this.copySelectedButton.textContent = this.selected.size ? `Seçilenleri kopyala (${this.selected.size})` : "Seçilenleri kopyala";
+            this.copySelectedButton.textContent = this.selected.size
+                ? `Seçilenleri kopyala (${this.selected.size})`
+                : "Seçilenleri kopyala";
         }
         renderKindCounts() {
-            const counts = { all: 0, image: 0, video: 0, audio: 0, font: 0, code: 0, other: 0 };
+            const counts = {
+                all: 0,
+                image: 0,
+                video: 0,
+                audio: 0,
+                font: 0,
+                code: 0,
+                other: 0
+            };
             for (const item of this.registry.values()) {
                 counts.all++;
                 counts[DAI.assetKind(item.extension)]++;
             }
             for (const [kind, count] of Object.entries(counts)) {
-                const element = this.surface.querySelector(`[data-kind-count="${kind}"]`);
+                const element = this.surface.querySelector(`[data-count-kind="${kind}"]`);
                 if (element)
                     element.textContent = String(count);
             }
         }
         renderCards() {
             if (!this.visible.length) {
-                this.grid.innerHTML = `<div class="dai-empty">Geçerli filtrelerle eşleşen varlık bulunamadı.</div>`;
+                this.grid.innerHTML = `
+          <div class="empty">
+            <strong>Varlık bulunamadı</strong>
+            <span>Filtreleri değiştir veya yeniden tara.</span>
+          </div>
+        `;
                 return;
             }
             const limit = Math.min(this.renderLimit, this.visible.length);
-            const html = this.visible.slice(0, limit).map(item => {
-                const preview = this.previewHtml(item);
-                const selected = this.selected.has(item.url);
-                const kind = DAI.assetKind(item.extension);
-                const host = this.urlHost(item.url);
-                const chips = [...item.sources].slice(0, 2).map(source => `<span class="dai-chip">${DAI.escapeHtml(DAI.sourceLabel(source))}</span>`).join("");
-                const extraSources = Math.max(0, item.sources.size - 2);
-                return `<article class="dai-card${selected ? " is-selected" : ""}" data-url="${DAI.escapeHtml(item.url)}">
-          <div class="dai-preview">
-            ${preview}
-            <div class="dai-preview-top">
-              <div class="dai-badges">
-                <span class="dai-kind-badge">${DAI.escapeHtml(DAI.assetKindLabel(kind))}</span>
-                <span class="dai-ext-badge">${DAI.escapeHtml((item.extension || "dosya").toUpperCase())}</span>
-              </div>
-              <button class="dai-select" data-action="toggle-select" aria-label="${selected ? "Seçimi kaldır" : "Seç"}" aria-pressed="${selected}">
-                <span>${selected ? "✓" : ""}</span>
-              </button>
-            </div>
-          </div>
-          <div class="dai-body">
-            <div class="dai-name" title="${DAI.escapeHtml(item.name)}">${DAI.escapeHtml(item.name)}</div>
-            <div class="dai-location" title="${DAI.escapeHtml(item.url)}">
-              <span class="dai-host">${DAI.escapeHtml(host)}</span>
-              <span class="dai-dot">•</span>
-              <span>${item.modules.size ? `${item.modules.size} modül` : "modül yok"}</span>
-            </div>
-            <div class="dai-footer">
-              <div class="dai-chips">${chips}${extraSources ? `<span class="dai-chip">+${extraSources}</span>` : ""}</div>
-              <div class="dai-actions">
-                <button data-action="copy" title="Kopyala" aria-label="Kopyala">Kopyala</button>
-                <button data-action="open" title="Yeni sekmede aç" aria-label="Aç">Aç</button>
-                <button class="dai-download" data-action="download" title="İndir" aria-label="İndir">İndir</button>
-              </div>
-            </div>
-          </div>
-        </article>`;
-            }).join("");
-            const remaining = Math.max(0, this.visible.length - limit);
-            this.grid.innerHTML = html + (remaining
-                ? `<div class="dai-load-more"><button data-action="load-more">Daha fazla göster <span>+${Math.min(this.renderStep, remaining)}</span></button><small>${limit} / ${this.visible.length} gösteriliyor</small></div>`
+            const cards = this.visible.slice(0, limit).map(item => this.cardHtml(item)).join("");
+            const remaining = this.visible.length - limit;
+            this.grid.innerHTML = cards + (remaining > 0
+                ? `<div class="load-more">
+             <button data-action="load-more">Daha fazla göster (+${Math.min(this.renderStep, remaining)})</button>
+             <span>${limit} / ${this.visible.length}</span>
+           </div>`
                 : "");
-            this.scheduleLayoutCheck();
         }
-        scheduleLayoutCheck() {
-            requestAnimationFrame(() => {
-                if (this.closed)
-                    return;
-                const card = this.grid.querySelector(".dai-card");
-                const preview = card?.querySelector(".dai-preview");
-                if (!card || !preview)
-                    return;
-                const gridStyle = getComputedStyle(this.grid);
-                const cardRect = card.getBoundingClientRect();
-                const previewRect = preview.getBoundingClientRect();
-                const broken = gridStyle.display !== "grid" ||
-                    cardRect.width < 150 ||
-                    cardRect.height < 150 ||
-                    previewRect.height < 70;
-                if (broken)
-                    this.applyCriticalLayoutFallback();
-            });
+        cardHtml(item) {
+            const selected = this.selected.has(item.url);
+            const kind = DAI.assetKind(item.extension);
+            const sources = [...item.sources].slice(0, 2);
+            const sourceHtml = sources.map(source => `<span class="source-chip">${DAI.escapeHtml(DAI.sourceLabel(source))}</span>`).join("");
+            return `
+        <article class="card${selected ? " selected" : ""}" data-url="${DAI.escapeHtml(item.url)}">
+          <div class="preview">
+            ${this.previewHtml(item)}
+            <div class="preview-meta">
+              <span>${DAI.escapeHtml(DAI.assetKindLabel(kind))}</span>
+              <span>${DAI.escapeHtml(item.extension.toUpperCase())}</span>
+            </div>
+            <button
+              class="select"
+              data-action="toggle-select"
+              aria-label="${selected ? "Seçimi kaldır" : "Seç"}"
+              aria-pressed="${selected}"
+            >${selected ? "✓" : ""}</button>
+          </div>
+
+          <div class="card-body">
+            <div class="filename" title="${DAI.escapeHtml(item.name)}">${DAI.escapeHtml(item.name)}</div>
+            <div class="meta" title="${DAI.escapeHtml(item.url)}">
+              <span>${DAI.escapeHtml(this.host(item.url))}</span>
+              <span>•</span>
+              <span>${item.modules.size ? `${item.modules.size} modül` : "yüklenmiş kaynak"}</span>
+            </div>
+
+            <div class="source-row">${sourceHtml}</div>
+
+            <div class="card-actions">
+              <button data-action="copy">Kopyala</button>
+              <button data-action="open">Aç</button>
+              <button class="download" data-action="download">İndir</button>
+            </div>
+          </div>
+        </article>
+      `;
         }
-        applyCriticalLayoutFallback() {
-            const firstRepair = !this.layoutRepairApplied;
-            this.layoutRepairApplied = true;
-            Object.assign(this.grid.style, {
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
-                alignContent: "start",
-                gap: "12px",
-                padding: "14px 18px 20px",
-                overflow: "auto"
-            });
-            this.grid.querySelectorAll(".dai-card").forEach(card => {
-                Object.assign(card.style, {
-                    display: "block",
-                    minWidth: "0",
-                    minHeight: "235px",
-                    overflow: "hidden",
-                    border: "1px solid rgba(255,255,255,.09)",
-                    borderRadius: "13px",
-                    background: "#1c1f25"
-                });
-                const preview = card.querySelector(".dai-preview");
-                if (preview) {
-                    Object.assign(preview.style, {
-                        position: "relative",
-                        display: "grid",
-                        placeItems: "center",
-                        width: "100%",
-                        height: "145px",
-                        minHeight: "145px",
-                        overflow: "hidden",
-                        background: "#111318"
-                    });
-                }
-                const body = card.querySelector(".dai-body");
-                if (body) {
-                    Object.assign(body.style, {
-                        display: "block",
-                        minHeight: "88px",
-                        padding: "11px"
-                    });
-                }
-            });
-            if (firstRepair)
-                this.setStatus("Görünüm koruması etkinleştirildi.");
+        previewHtml(item) {
+            const url = DAI.escapeHtml(item.url);
+            if (DAI.IMAGE_EXTENSIONS.has(item.extension)) {
+                return `<img loading="lazy" decoding="async" src="${url}" alt="" />`;
+            }
+            if (DAI.VIDEO_EXTENSIONS.has(item.extension)) {
+                return `<video preload="metadata" muted src="${url}"></video>`;
+            }
+            if (DAI.AUDIO_EXTENSIONS.has(item.extension)) {
+                return '<div class="file-preview"><b>♪</b><span>Ses</span></div>';
+            }
+            if (DAI.FONT_EXTENSIONS.has(item.extension)) {
+                return '<div class="file-preview font-preview"><b>Aa</b><span>Yazı tipi</span></div>';
+            }
+            if (DAI.CODE_EXTENSIONS.has(item.extension)) {
+                return `<div class="file-preview"><b>&lt;/&gt;</b><span>${DAI.escapeHtml(item.extension.toUpperCase())}</span></div>`;
+            }
+            return `<div class="file-preview"><b>FILE</b><span>${DAI.escapeHtml(item.extension.toUpperCase())}</span></div>`;
         }
-        urlHost(url) {
+        host(url) {
             try {
                 return new URL(url, location.href).hostname.replace(/^cdn\./, "");
             }
             catch {
-                return "yerel kaynak";
+                return "discord";
             }
-        }
-        previewHtml(item) {
-            const url = DAI.escapeHtml(item.url);
-            if (DAI.IMAGE_EXTENSIONS.has(item.extension))
-                return `<img loading="lazy" decoding="async" src="${url}" alt="" />`;
-            if (DAI.VIDEO_EXTENSIONS.has(item.extension))
-                return `<video preload="metadata" muted src="${url}"></video>`;
-            if (DAI.AUDIO_EXTENSIONS.has(item.extension))
-                return `<div class="dai-filetype"><b>WAVE</b><span>Ses</span></div>`;
-            if (DAI.FONT_EXTENSIONS.has(item.extension))
-                return `<div class="dai-fonttype"><b>Aa</b><span>Yazı tipi</span></div>`;
-            if (DAI.CODE_EXTENSIONS.has(item.extension))
-                return `<div class="dai-filetype"><b>&lt;/&gt;</b><span>${DAI.escapeHtml(item.extension || "Kod")}</span></div>`;
-            return `<div class="dai-filetype"><b>FILE</b><span>${DAI.escapeHtml(item.extension || "Diğer")}</span></div>`;
         }
         async downloadAsset(url) {
             try {
-                const response = await fetch(url, { method: "GET", cache: "force-cache", signal: this.abortController.signal });
+                const response = await fetch(url, {
+                    method: "GET",
+                    cache: "force-cache",
+                    credentials: "same-origin",
+                    signal: this.abortController.signal
+                });
                 if (!response.ok)
                     throw new Error(String(response.status));
                 DAI.downloadBlob(await response.blob(), DAI.fileName(url));
@@ -1851,10 +1693,10 @@ var DAI;
             }
         }
         setStatus(text) {
-            this.statusTextEl.textContent = text;
+            this.statusEl.textContent = text;
         }
         setProgress(value) {
-            this.progressEl.style.setProperty("--p", `${Math.max(0, Math.min(100, value))}%`);
+            this.progressEl.style.width = `${Math.max(0, Math.min(100, value))}%`;
         }
         close() {
             if (this.closed)
