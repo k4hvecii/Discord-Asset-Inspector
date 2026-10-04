@@ -2,7 +2,7 @@
  * @name DiscordAssetInspector
  * @author K4hveci
  * @description Discord tarafından yüklenen varlıkları yerel BetterDiscord panelinden inceleyin.
- * @version 0.3.2
+ * @version 0.4.0
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -213,7 +213,7 @@ class DiscordAssetInspectorPlugin {
 module.exports = DiscordAssetInspectorPlugin;
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.3.2";
+    DAI.VERSION = "0.4.0";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
