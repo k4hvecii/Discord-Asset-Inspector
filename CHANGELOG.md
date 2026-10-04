@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 - 2026-10-04
+
+- Rebuilt normal scanning around a clean registry on every rescan.
+- Removed Cache Storage from the default distribution scan path.
+- Performance Resource Timing now runs only when broad user-content mode is enabled.
+- Added cached Webpack module parsing to make repeated scans cheaper.
+- Tightened emoji, avatar, sticker, profile-effect and dense image-catalog suppression.
+- Reduced initial card rendering from hundreds of assets to 60 with incremental loading.
+- Added automatic card-layout integrity checks and an inline fallback layout.
+- Strengthened Shadow DOM host isolation against Discord and BetterDiscord theme CSS.
+- Removed duplicate JSON export controls and unused cache-scanner code from bundles.
+
+
 ## 0.4.2 - 2026-10-04
 
 - Isolated the inspector UI inside Shadow DOM so Discord and BetterDiscord theme CSS cannot break card layouts.
