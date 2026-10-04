@@ -1,28 +1,24 @@
 namespace DAI {
-  export function escapeHtml(value: unknown): string {
-    return String(value).replace(/[&<>"']/g, ch => ({
+  export function escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, char => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#039;"
-    }[ch] || ch));
+    })[char] || char);
   }
 
   export function fileName(url: string): string {
     try {
       const parsed = new URL(url, location.href);
-      return decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() || parsed.hostname);
+      return decodeURIComponent(parsed.pathname.split("/").pop() || "asset");
     } catch {
-      return url.split(/[?#]/)[0].split("/").pop() || url;
+      return "asset";
     }
   }
 
   export function getExtension(url: string): string {
-    if (url.startsWith("data:")) {
-      const match = url.match(/^data:[^/]+\/([a-z0-9+.-]+)/i);
-      return (match?.[1] || "").toLowerCase().replace("svg+xml", "svg");
-    }
     const clean = url.split(/[?#]/)[0];
     return (clean.match(/\.([a-z0-9]+)$/i)?.[1] || "").toLowerCase();
   }
@@ -50,22 +46,19 @@ namespace DAI {
 
   export function sourceLabel(source: AssetSource): string {
     const labels: Record<AssetSource, string> = {
+      performance: "Yüklü kaynak",
+      css: "CSS",
       webpack: "Webpack",
       "lazy-js": "Ek JS",
-      "lazy-css": "Ek CSS",
-      dom: "DOM",
-      performance: "Ağ kaynakları",
-      css: "CSS",
-      cache: "Önbellek"
+      "lazy-css": "Ek CSS"
     };
     return labels[source];
   }
 
   export function normalizeUrl(raw: string, runtime?: WebpackRuntime | null): string | null {
     let value = String(raw || "").trim().replace(/\\(?:\/|u002f)/gi, "/");
-    value = value.replace(/^["'`]|["'`]$/g, "");
+    value = value.replace(/^[\"'\x60]|[\"'\x60]$/g, "");
     if (!value || value.includes("${") || value.includes("#{")) return null;
-    if (value.startsWith("data:") || value.startsWith("blob:")) return value;
 
     try {
       if (/^https?:\/\//i.test(value)) return new URL(value).href;
@@ -90,107 +83,29 @@ namespace DAI {
     }
   }
 
-  export function isUserContentAssetUrl(url: string): boolean {
+  export function isStaticClientAssetUrl(url: string): boolean {
     try {
       const parsed = new URL(url, location.href);
-      const host = parsed.hostname.toLowerCase();
-      const path = parsed.pathname.toLowerCase();
-
       if (!isDiscordOwnedUrl(parsed.href)) return false;
 
-      const userPaths = [
-        "/attachments/",
-        "/avatars/",
-        "/guilds/",
-        "/icons/",
-        "/banners/",
-        "/splashes/",
-        "/discovery-splashes/",
-        "/emojis/",
-        "/emoji/",
-        "/twemoji/",
-        "/emoji-sprites/",
-        "/stickers/",
-        "/sticker-packs/",
-        "/role-icons/",
-        "/app-icons/",
-        "/app-assets/",
-        "/team-icons/",
-        "/channel-icons/",
-        "/avatar-decorations/",
-        "/avatar-decoration-presets/",
-        "/profile-effects/",
-        "/soundboard-sounds/",
-        "/clan-badges/",
-        "/guild-events/",
-        "/guild-scheduled-events/"
+      const path = parsed.pathname.toLowerCase();
+      if (!(path === "/assets" || path.startsWith("/assets/") || path.includes("/assets/"))) return false;
+
+      const blocked = [
+        "/attachments/", "/avatars/", "/guilds/", "/banners/", "/emojis/",
+        "/stickers/", "/role-icons/", "/app-icons/", "/avatar-decorations/",
+        "/profile-effects/", "/soundboard-sounds/"
       ];
-
-      return userPaths.some(segment => path.includes(segment));
+      return !blocked.some(segment => path.includes(segment));
     } catch {
       return false;
     }
-  }
-
-  export function isLikelyNoiseAssetUrl(url: string): boolean {
-    try {
-      const parsed = new URL(url, location.href);
-      const path = decodeURIComponent(parsed.pathname).toLowerCase();
-      const name = (path.split("/").pop() || "").split(".")[0];
-
-      if (isUserContentAssetUrl(parsed.href)) return true;
-
-      const unicodeEmojiName =
-        /^(?:emoji[_-]?)?(?:u[_+-]?)?[0-9a-f]{4,6}(?:[-_][0-9a-f]{2,6}){0,7}$/i.test(name);
-      if (unicodeEmojiName) return true;
-
-      return (
-        /(?:^|[-_.])(twemoji|emoji-sprite|emoji_sprite|emoji-pack|emoji_pack)(?:[-_.]|$)/i.test(name) ||
-        path.includes("/embed/avatars/") ||
-        path.includes("/default-avatars/")
-      );
-    } catch {
-      return false;
-    }
-  }
-
-  export function isLikelyClientAssetUrl(url: string): boolean {
-    if (url.startsWith("data:") || url.startsWith("blob:")) return false;
-
-    try {
-      const parsed = new URL(url, location.href);
-      const path = parsed.pathname.toLowerCase();
-      if (!isDiscordOwnedUrl(parsed.href)) return false;
-      if (isUserContentAssetUrl(parsed.href)) return false;
-
-      return (
-        path.startsWith("/assets/") ||
-        path === "/assets" ||
-        path.includes("/assets/")
-      );
-    } catch {
-      return false;
-    }
-  }
-
-  export function shouldIncludeAsset(
-    url: string,
-    source: AssetSource,
-    includeUserContent: boolean
-  ): boolean {
-    if (includeUserContent) return true;
-    if (isLikelyNoiseAssetUrl(url)) return false;
-
-    const runtimeOnlySources = new Set<AssetSource>(["dom", "performance", "cache", "css"]);
-    if (!runtimeOnlySources.has(source)) return true;
-
-    return isLikelyClientAssetUrl(url);
   }
 
   export function assetRegex(): RegExp {
     const ext = [...EXTENSIONS].join("|");
     return new RegExp(
-      "(?:https?:\\\\?/\\\\?/[^\\\"'`\\\\\\s){}]+\\.(?:" + ext + ")(?=[?\\\"'`\\\\\\s){}]|$))|" +
+      "(?:https?:\\\\?/\\\\?/[^\\\"'\\x60\\\\\\s){}]+\\.(?:" + ext + ")(?=[?\\\"'\\x60\\\\\\s){}]|$))|" +
       "(?:(?:\\\\?/?assets\\\\?/)?[a-fA-F0-9_-]{8,}\\.(?:" + ext + "))",
       "gi"
     );
@@ -227,13 +142,13 @@ namespace DAI {
 
   export function downloadBlob(blob: Blob, name: string): void {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = name;
+    anchor.rel = "noopener";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }
 
