@@ -1311,6 +1311,7 @@ var DAI;
             <button data-action="select-visible">Görünenleri seç</button>
             <button data-action="selected-only" aria-pressed="false">Yalnız seçilenler</button>
             <button data-action="clear-selection">Temizle</button>
+            <button class="dai-content-toggle" data-action="user-content" aria-pressed="false">Kullanıcı içeriği: Kapalı</button>
             <span class="dai-spacer"></span>
             <select data-role="copy-format" aria-label="Kopyalama biçimi"><option value="url">URL</option><option value="markdown">Markdown</option><option value="css">CSS url()</option><option value="html">HTML</option></select>
             <button data-action="copy-selected" disabled>Seçilenleri kopyala</button>
@@ -1335,6 +1336,7 @@ var DAI;
             this.copySelectedButton = this.must("[data-action=copy-selected]");
             this.selectedCountEl = this.must("[data-role=selected-count]");
             this.selectedOnlyButton = this.must("[data-action=selected-only]");
+            this.userContentButton = this.must("[data-action=user-content]");
             const refresh = DAI.debounce(() => this.applyFilters(), 120);
             this.searchEl.addEventListener("input", refresh);
             this.extensionEl.addEventListener("change", () => this.applyFilters());
@@ -1384,6 +1386,27 @@ var DAI;
                 this.selectedOnlyButton.setAttribute("aria-pressed", String(this.selectedOnly));
                 this.selectedOnlyButton.classList.toggle("is-active", this.selectedOnly);
                 this.applyFilters();
+                return;
+            }
+            if (action === "user-content") {
+                const enabled = !this.registry.isUserContentEnabled();
+                const removed = this.registry.setIncludeUserContent(enabled);
+                this.userContentButton.setAttribute("aria-pressed", String(enabled));
+                this.userContentButton.classList.toggle("is-active", enabled);
+                this.userContentButton.textContent = `Kullanıcı içeriği: ${enabled ? "Açık" : "Kapalı"}`;
+                if (enabled) {
+                    this.setStatus("Kullanıcı içeriği dahil ediliyor…");
+                    await this.rescan();
+                }
+                else {
+                    for (const url of [...this.selected]) {
+                        if (!this.registry.get(url))
+                            this.selected.delete(url);
+                    }
+                    this.rebuildFilters();
+                    this.applyFilters();
+                    this.setStatus(`Kullanıcı içeriği gizlendi · ${removed} kayıt kaldırıldı.`);
+                }
                 return;
             }
             if (action === "copy-selected") {
