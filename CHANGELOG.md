@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 - 2026-10-04
+
+- Reworked the asset card layout for a cleaner media-library feel.
+- Moved type and extension labels onto the preview area.
+- Replaced the large selection control with a compact circular selector.
+- Replaced the full URL line with a cleaner host and module summary.
+- Reduced source-chip clutter and grouped card actions into a consistent footer.
+- Improved card spacing, responsive grid sizing and visual hierarchy.
+
+
 ## 0.3.2 - 2026-10-04
 
 - Added a small Asset Inspector button to Discord's top channel toolbar.
