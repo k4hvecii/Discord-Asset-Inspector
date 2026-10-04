@@ -1,5 +1,5 @@
 namespace DAI {
-  export const VERSION = "0.2.0";
+  export const VERSION = "0.3.0";
   export const ROOT_ID = "__discord_asset_inspector__";
 
   export const EXTENSIONS = new Set([
@@ -18,6 +18,7 @@ namespace DAI {
   export const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "m4v", "ogv"]);
   export const AUDIO_EXTENSIONS = new Set(["mp3", "ogg", "wav", "m4a", "aac", "flac", "opus", "weba"]);
   export const FONT_EXTENSIONS = new Set(["woff", "woff2", "ttf", "otf", "eot", "ttc"]);
+  export const CODE_EXTENSIONS = new Set(["json", "wasm", "css", "js", "xml", "txt", "webmanifest", "lottie", "rlottie", "vtt", "glsl"]);
 
   export const DISCORD_HOST_SUFFIXES = [
     "discord.com",
