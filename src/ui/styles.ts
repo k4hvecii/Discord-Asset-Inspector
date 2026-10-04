@@ -11,525 +11,556 @@ namespace DAI {
   pointer-events: none !important;
 }
 
-.dai-root {
+* {
+  box-sizing: border-box;
+}
+
+.app {
   position: fixed;
-  pointer-events: auto;
   inset: 0;
-  z-index: 2147483646;
-  color: #e7e9ee;
+  pointer-events: auto;
+  color: #e6e9ef;
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.dai-root * { box-sizing: border-box; }
-
-.dai-root .dai-backdrop {
+.backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(6, 8, 12, .72);
-  backdrop-filter: blur(8px);
+  background: rgba(5, 7, 10, .72);
+  backdrop-filter: blur(7px);
 }
 
-.dai-root .dai-panel {
+.panel {
   position: absolute;
-  inset: 4vh 3vw;
-  max-width: 1500px;
+  inset: 3vh 2.5vw;
+  max-width: 1540px;
   margin: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 18px;
+  border-radius: 16px;
   background: #17191f;
-  box-shadow: 0 28px 90px rgba(0,0,0,.46);
+  box-shadow: 0 26px 90px rgba(0,0,0,.5);
 }
 
-.dai-root .dai-head {
-  min-height: 70px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  background: #181a20;
-}
-
-.dai-root .dai-brand { min-width: 230px; }
-.dai-root .dai-title { font-size: 15px; font-weight: 720; letter-spacing: -.15px; }
-.dai-root .dai-sub { margin-top: 3px; color: #7f8795; font-size: 10px; }
-.dai-root .dai-spacer { flex: 1; }
-
-.dai-root button,
-.dai-root input,
-.dai-root select {
+button,
+input,
+select {
   font: inherit;
 }
 
-.dai-root button {
+button {
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 9px;
+  border-radius: 8px;
   background: #22252c;
-  color: #dfe2e8;
-  padding: 8px 11px;
+  color: #dce0e7;
   cursor: pointer;
   transition: background .14s ease, border-color .14s ease, color .14s ease;
 }
 
-.dai-root button:hover {
-  background: #292d35;
-  border-color: rgba(255,255,255,.14);
+button:hover {
+  background: #2a2e36;
+  border-color: rgba(255,255,255,.15);
 }
 
-.dai-root button:disabled {
+button:disabled {
   opacity: .42;
   cursor: default;
 }
 
-.dai-root .dai-primary {
+.header {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  background: #181a20;
+}
+
+.brand {
+  display: grid;
+  gap: 3px;
+  min-width: 220px;
+}
+
+.brand strong {
+  font-size: 14px;
+  font-weight: 720;
+  letter-spacing: -.1px;
+}
+
+.brand span {
+  color: #7d8593;
+  font-size: 10px;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.header-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+}
+
+.header-actions .primary {
+  border-color: #6c76f3;
   background: #5865f2;
-  border-color: #6772f4;
   color: white;
 }
 
-.dai-root .dai-primary:hover { background: #626ef3; }
-
-.dai-root .dai-close {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  font-size: 18px;
+.header-actions .primary:hover {
+  background: #6671f3;
 }
 
-.dai-root .dai-tools {
+.icon-button {
+  width: 34px;
+  min-width: 34px;
+  padding: 0 !important;
+  font-size: 17px;
+}
+
+.filters {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px 150px 150px;
+  grid-template-columns: minmax(260px, 1fr) 150px 150px 170px;
   gap: 8px;
-  padding: 12px 18px 9px;
+  padding: 12px 16px 9px;
 }
 
-.dai-root input,
-.dai-root select {
+input,
+select {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 9px;
+  border-radius: 8px;
+  outline: none;
   background: #20232a;
   color: #e4e7ec;
   padding: 0 10px;
-  outline: none;
 }
 
-.dai-root input::placeholder { color: #666e7c; }
+input::placeholder {
+  color: #666e7b;
+}
 
-.dai-root input:focus,
-.dai-root select:focus {
+input:focus,
+select:focus {
   border-color: rgba(88,101,242,.72);
 }
 
-.dai-root .dai-kinds {
+.kinds {
   display: flex;
   gap: 4px;
-  padding: 0 18px 9px;
   overflow-x: auto;
-  scrollbar-width: none;
+  padding: 0 16px 9px;
   border-bottom: 1px solid rgba(255,255,255,.055);
+  scrollbar-width: none;
 }
 
-.dai-root .dai-kinds::-webkit-scrollbar { display: none; }
+.kinds::-webkit-scrollbar {
+  display: none;
+}
 
-.dai-root .dai-kinds button {
+.kinds button {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px;
+  min-height: 30px;
+  padding: 0 9px;
   border-color: transparent;
-  border-radius: 7px;
   background: transparent;
-  color: #858d9a;
+  color: #8c94a1;
   font-size: 10px;
 }
 
-.dai-root .dai-kinds button b {
-  min-width: 18px;
-  color: #626a77;
+.kinds button:hover {
+  background: #20232a;
+  color: #d0d5dc;
+}
+
+.kinds button.active {
+  border-color: rgba(88,101,242,.24);
+  background: rgba(88,101,242,.13);
+  color: #eef0ff;
+}
+
+.kinds b {
+  color: #69717f;
   font-size: 9px;
   font-weight: 650;
-  text-align: right;
 }
 
-.dai-root .dai-kinds button:hover {
-  background: #20232a;
-  color: #cdd2da;
-}
-
-.dai-root .dai-kinds button.is-active {
-  background: #242832;
-  color: #eef0f4;
-  box-shadow: inset 0 -2px #5865f2;
-}
-
-.dai-root .dai-bulk {
+.bulk {
   min-height: 44px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 18px;
+  padding: 7px 16px;
   border-bottom: 1px solid rgba(255,255,255,.055);
 }
 
-.dai-root .dai-bulk button {
-  padding: 6px 9px;
+.bulk button {
+  min-height: 30px;
+  padding: 0 9px;
   font-size: 10px;
 }
 
-.dai-root .dai-bulk button.is-active {
-  border-color: rgba(88,101,242,.5);
-  background: rgba(88,101,242,.13);
-  color: #dfe2ff;
-}
-
-.dai-root .dai-content-toggle {
-  color: #8f97a4;
-}
-
-.dai-root .dai-content-toggle.is-active {
-  border-color: rgba(250,166,26,.34);
-  background: rgba(250,166,26,.09);
-  color: #f2c26f;
-}
-
-.dai-root .dai-raw-toggle {
-  color: #8f97a4;
-}
-
-.dai-root .dai-raw-toggle.is-active {
-  border-color: rgba(88,101,242,.42);
-  background: rgba(88,101,242,.12);
-  color: #cfd3ff;
-}
-
-.dai-root .dai-bulk select {
-  width: 126px;
-  height: 31px;
+.bulk select {
+  width: 125px;
+  height: 30px;
   font-size: 10px;
 }
 
-.dai-root .dai-progress {
+.grow {
+  flex: 1;
+}
+
+.progress {
   height: 2px;
   background: rgba(255,255,255,.04);
   overflow: hidden;
 }
 
-.dai-root .dai-progress > i {
+.progress i {
   display: block;
-  width: var(--p, 0%);
+  width: 0;
   height: 100%;
   background: #5865f2;
-  transition: width .15s linear;
+  transition: width .14s linear;
 }
 
-.dai-root .dai-status {
+.statusbar {
+  min-height: 34px;
   display: flex;
   align-items: center;
   gap: 13px;
-  min-height: 34px;
-  padding: 8px 18px;
-  color: #858d9a;
-  font-size: 10.5px;
+  padding: 8px 16px;
   border-bottom: 1px solid rgba(255,255,255,.05);
+  color: #858e9b;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
-.dai-root .dai-status strong { color: #e4e7ec; }
+.statusbar b {
+  color: #e4e7ec;
+}
 
-.dai-root .dai-grid {
+.statusbar .status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grid {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 14px 18px 20px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
   align-content: start;
   gap: 12px;
+  padding: 14px 16px 20px;
   scrollbar-width: thin;
   scrollbar-color: #555b66 transparent;
 }
 
-.dai-root .dai-card {
-  position: relative;
+.card {
   min-width: 0;
+  height: 286px;
+  display: grid;
+  grid-template-rows: 148px 138px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.075);
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 13px;
-  background: #1c1f25;
-  transition: border-color .14s ease, background .14s ease, transform .14s ease;
+  background: #1d2026;
+  transition: border-color .14s ease, transform .14s ease;
 }
 
-.dai-root .dai-card:hover {
-  border-color: rgba(255,255,255,.14);
-  background: #1e2128;
+.card:hover {
+  border-color: rgba(255,255,255,.15);
   transform: translateY(-1px);
 }
 
-.dai-root .dai-card.is-selected {
-  border-color: rgba(88,101,242,.82);
+.card.selected {
+  border-color: rgba(88,101,242,.86);
   box-shadow: inset 0 0 0 1px rgba(88,101,242,.16);
 }
 
-.dai-root .dai-preview {
+.preview {
   position: relative;
-  aspect-ratio: 16 / 9;
+  min-width: 0;
+  min-height: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background:
-    linear-gradient(45deg, rgba(255,255,255,.015) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255,255,255,.015) 25%, transparent 25%),
-    #111318;
-  background-size: 18px 18px;
+  background: #111318;
 }
 
-.dai-root .dai-preview img,
-.dai-root .dai-preview video {
+.preview img,
+.preview video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.dai-root .dai-preview-top {
+.preview-meta {
   position: absolute;
-  inset: 8px 8px auto 8px;
+  top: 8px;
+  left: 8px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 5px;
   pointer-events: none;
 }
 
-.dai-root .dai-badges {
-  display: flex;
-  gap: 5px;
-  min-width: 0;
-}
-
-.dai-root .dai-kind-badge,
-.dai-root .dai-ext-badge {
+.preview-meta span {
   padding: 4px 6px;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.09);
   border-radius: 6px;
-  background: rgba(13,15,19,.78);
-  color: #d7dbe2;
-  backdrop-filter: blur(6px);
+  background: rgba(12,14,18,.8);
+  color: #cbd0d8;
   font-size: 8px;
   font-weight: 650;
-  letter-spacing: .025em;
+  backdrop-filter: blur(5px);
 }
 
-.dai-root .dai-ext-badge {
-  color: #8f98a6;
-  font-weight: 600;
-}
-
-.dai-root .dai-select {
+.select {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   width: 27px;
   height: 27px;
-  flex: 0 0 27px;
   padding: 0;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255,255,255,.18);
   border-radius: 50%;
-  background: rgba(13,15,19,.72);
+  background: rgba(12,14,18,.78);
   color: white;
-  opacity: .55;
-  pointer-events: auto;
-  backdrop-filter: blur(6px);
 }
 
-.dai-root .dai-card:hover .dai-select,
-.dai-root .dai-card.is-selected .dai-select {
-  opacity: 1;
-}
-
-.dai-root .dai-card.is-selected .dai-select {
-  border-color: #6d78f4;
+.card.selected .select {
+  border-color: #6f79f4;
   background: #5865f2;
 }
 
-.dai-root .dai-select span {
-  font-size: 13px;
-  line-height: 1;
+.card-body {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 20px 18px 24px 32px;
+  gap: 5px;
+  padding: 10px;
 }
 
-.dai-root .dai-filetype,
-.dai-root .dai-fonttype {
+.filename {
+  overflow: hidden;
+  color: #e8ebf0;
+  font-size: 11.5px;
+  font-weight: 680;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  color: #747d8b;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.meta span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.source-chip {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.055);
+  color: #9ca4b0;
+  font-size: 8.5px;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+}
+
+.card-actions button {
+  min-width: 0;
+  height: 32px;
+  padding: 0 5px;
+  color: #b3bac5;
+  font-size: 9.5px;
+}
+
+.card-actions button:hover {
+  color: white;
+}
+
+.card-actions .download {
+  border-color: rgba(88,101,242,.3);
+  background: rgba(88,101,242,.1);
+  color: #d0d4ff;
+}
+
+.file-preview {
   display: grid;
   place-items: center;
-  gap: 4px;
-  color: #6d7582;
+  gap: 5px;
+  color: #7f8794;
   text-transform: uppercase;
 }
 
-.dai-root .dai-filetype b {
-  color: #929aa7;
-  font-size: 18px;
-  letter-spacing: .08em;
+.file-preview b {
+  color: #a5acb7;
+  font-size: 22px;
+  letter-spacing: .06em;
 }
 
-.dai-root .dai-filetype span,
-.dai-root .dai-fonttype span {
+.file-preview span {
   font-size: 8px;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
 }
 
-.dai-root .dai-fonttype b {
-  color: #aeb4be;
+.font-preview b {
   font-family: Georgia, serif;
   font-size: 36px;
   font-weight: 500;
   text-transform: none;
 }
 
-.dai-root .dai-body {
-  padding: 11px 11px 10px;
-}
-
-.dai-root .dai-name {
-  overflow: hidden;
-  color: #e6e9ee;
-  font-size: 12px;
-  font-weight: 680;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dai-root .dai-location {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  margin-top: 5px;
-  color: #707986;
-  font-size: 9.5px;
-  white-space: nowrap;
-}
-
-.dai-root .dai-host {
-  min-width: 0;
-  overflow: hidden;
-  color: #858e9c;
-  text-overflow: ellipsis;
-}
-
-.dai-root .dai-dot { color: #4f5662; }
-
-.dai-root .dai-footer {
-  display: grid;
-  gap: 9px;
-  margin-top: 10px;
-}
-
-.dai-root .dai-chips {
-  min-height: 19px;
-  display: flex;
-  gap: 5px;
-  overflow: hidden;
-}
-
-.dai-root .dai-chip {
-  flex: 0 0 auto;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgba(255,255,255,.055);
-  color: #9da5b1;
-  font-size: 8.5px;
-}
-
-.dai-root .dai-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 5px;
-}
-
-.dai-root .dai-actions button {
-  min-width: 0;
-  padding: 6px 5px;
-  border-radius: 7px;
-  background: #22252c;
-  color: #abb2bd;
-  font-size: 9.5px;
-}
-
-.dai-root .dai-actions button:hover {
-  color: #eef0f4;
-}
-
-.dai-root .dai-actions .dai-download {
-  border-color: rgba(88,101,242,.3);
-  color: #cfd3ff;
-  background: rgba(88,101,242,.1);
-}
-
-.dai-root .dai-actions .dai-download:hover {
-  background: rgba(88,101,242,.18);
-}
-
-.dai-root .dai-empty {
+.empty {
   grid-column: 1 / -1;
-  padding: 70px 20px;
-  color: #747d8b;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  color: #737c89;
   text-align: center;
 }
 
-.dai-load-more {
+.empty strong {
+  color: #c7ccd4;
+  font-size: 13px;
+}
+
+.empty span {
+  font-size: 10px;
+}
+
+.load-more {
   grid-column: 1 / -1;
   display: grid;
   place-items: center;
-  gap: 7px;
-  padding: 18px 0 8px;
+  gap: 6px;
+  padding: 14px 0 4px;
 }
 
-.dai-load-more button {
-  min-width: 180px;
-  padding: 9px 14px;
+.load-more button {
+  min-width: 190px;
+  min-height: 34px;
+  padding: 0 12px;
 }
 
-.dai-load-more button span {
-  color: #8f98ff;
-  margin-left: 4px;
-}
-
-.dai-load-more small {
-  color: #68717f;
+.load-more span {
+  color: #6f7886;
   font-size: 9px;
 }
 
 @media (max-width: 1000px) {
-  .dai-root .dai-panel { inset: 2vh 2vw; }
-  .dai-root .dai-tools { grid-template-columns: 1fr 1fr; }
-  .dai-root .dai-tools input { grid-column: 1 / -1; }
-  .dai-root .dai-brand { min-width: 0; }
-  .dai-root .dai-head .dai-secondary { display: none; }
-  .dai-root .dai-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .panel {
+    inset: 2vh 2vw;
+  }
+
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filters input {
+    grid-column: 1 / -1;
+  }
+
+  .header-actions button:not(.primary):not(.icon-button) {
+    display: none;
+  }
 }
 
 @media (max-width: 700px) {
-  .dai-root .dai-head { padding: 12px; }
-  .dai-root .dai-tools { padding-left: 12px; padding-right: 12px; }
-  .dai-root .dai-kinds { padding-left: 12px; padding-right: 12px; }
-  .dai-root .dai-bulk { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; }
-  .dai-root .dai-bulk .dai-spacer { display: none; }
-  .dai-root .dai-status { padding-left: 12px; padding-right: 12px; overflow-x: auto; white-space: nowrap; }
-  .dai-root .dai-grid { padding: 12px; }
+  .panel {
+    inset: 0;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 10px 12px;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .filters input {
+    grid-column: auto;
+  }
+
+  .kinds,
+  .bulk,
+  .statusbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .bulk {
+    flex-wrap: wrap;
+  }
+
+  .bulk .grow {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    padding: 12px;
+  }
 }
 
-@media (max-width: 560px) {
-  .dai-root .dai-panel { inset: 0; border-radius: 0; }
-  .dai-root .dai-tools { grid-template-columns: 1fr; }
-  .dai-root .dai-tools input { grid-column: auto; }
-  .dai-root .dai-bulk select,
-  .dai-root .dai-bulk button[data-action="json"] { display: none; }
-  .dai-root .dai-grid { grid-template-columns: 1fr; }
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bulk select {
+    display: none;
+  }
 }
 `;
 }
