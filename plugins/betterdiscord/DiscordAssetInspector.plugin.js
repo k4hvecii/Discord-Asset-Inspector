@@ -2,7 +2,7 @@
  * @name DiscordAssetInspector
  * @author K4hveci
  * @description Discord tarafından yüklenen varlıkları yerel BetterDiscord panelinden inceleyin.
- * @version 0.4.2
+ * @version 0.5.0
  * @website https://github.com/k4hvecii/Discord-Asset-Inspector
  * @source https://github.com/k4hvecii/Discord-Asset-Inspector/blob/main/plugins/betterdiscord/DiscordAssetInspector.plugin.js
  */
@@ -213,7 +213,7 @@ class DiscordAssetInspectorPlugin {
 module.exports = DiscordAssetInspectorPlugin;
 var DAI;
 (function (DAI) {
-    DAI.VERSION = "0.4.2";
+    DAI.VERSION = "0.5.0";
     DAI.ROOT_ID = "__discord_asset_inspector__";
     DAI.EXTENSIONS = new Set([
         "png", "jpg", "jpeg", "webp", "gif", "apng", "avif", "bmp", "svg", "ico", "tiff",
@@ -828,29 +828,6 @@ var DAI;
         return { added: registry.size() - before, scannedResources: count };
     }
     DAI.scanCss = scanCss;
-})(DAI || (DAI = {}));
-var DAI;
-(function (DAI) {
-    async function scanCache(registry) {
-        const before = registry.size();
-        let count = 0;
-        try {
-            if (!("caches" in window))
-                return { added: 0, scannedResources: 0 };
-            for (const name of await caches.keys()) {
-                const cache = await caches.open(name);
-                for (const request of await cache.keys()) {
-                    count++;
-                    registry.add(request.url, "cache");
-                }
-            }
-        }
-        catch {
-            // Cache Storage availability differs between Discord builds.
-        }
-        return { added: registry.size() - before, scannedResources: count };
-    }
-    DAI.scanCache = scanCache;
 })(DAI || (DAI = {}));
 var DAI;
 (function (DAI) {
