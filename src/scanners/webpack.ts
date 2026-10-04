@@ -42,7 +42,29 @@ namespace DAI {
 
         assetRe.lastIndex = 0;
         let match: RegExpExecArray | null;
-        while ((match = assetRe.exec(code))) this.registry.add(match[0], "webpack", id);
+        const discoveredAssets: string[] = [];
+        while ((match = assetRe.exec(code))) discoveredAssets.push(match[0]);
+
+        const lower = code.toLowerCase();
+        const imageAssetCount = discoveredAssets.reduce((count, raw) => {
+          const normalized = normalizeUrl(raw, this.runtime);
+          return normalized && IMAGE_EXTENSIONS.has(getExtension(normalized)) ? count + 1 : count;
+        }, 0);
+
+        const noisyEmojiModule =
+          !this.registry.isUserContentEnabled() &&
+          imageAssetCount >= 24 &&
+          /(emoji|twemoji|unicode.?emoji|emoji.?picker|emoji.?asset|emoji.?sprite|emojiname)/i.test(lower);
+
+        const noisyAvatarModule =
+          !this.registry.isUserContentEnabled() &&
+          imageAssetCount >= 8 &&
+          /(default.?avatar|avatar.?asset|default.?profile)/i.test(lower);
+
+        for (const raw of discoveredAssets) {
+          if (noisyEmojiModule || noisyAvatarModule) continue;
+          this.registry.add(raw, "webpack", id);
+        }
 
         chunkRe.lastIndex = 0;
         while ((match = chunkRe.exec(code))) this.chunkIds.add(match[1]);
