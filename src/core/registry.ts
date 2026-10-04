@@ -36,6 +36,10 @@ namespace DAI {
       return true;
     }
 
+    get(url: string): AssetRecord | undefined {
+      return this.items.get(url);
+    }
+
     size(): number {
       return this.items.size;
     }
@@ -49,6 +53,7 @@ namespace DAI {
         url: item.url,
         name: item.name,
         extension: item.extension,
+        kind: assetKind(item.extension),
         sources: [...item.sources],
         modules: [...item.modules]
       }));
