@@ -90,6 +90,82 @@ namespace DAI {
     }
   }
 
+  export function isUserContentAssetUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url, location.href);
+      const host = parsed.hostname.toLowerCase();
+      const path = parsed.pathname.toLowerCase();
+
+      const discordCdn =
+        host === "cdn.discordapp.com" ||
+        host === "media.discordapp.net" ||
+        host.endsWith(".discordapp.com") ||
+        host.endsWith(".discordapp.net");
+
+      if (!discordCdn) return false;
+
+      const userPaths = [
+        "/attachments/",
+        "/avatars/",
+        "/guilds/",
+        "/icons/",
+        "/banners/",
+        "/splashes/",
+        "/discovery-splashes/",
+        "/emojis/",
+        "/emoji/",
+        "/stickers/",
+        "/sticker-packs/",
+        "/role-icons/",
+        "/app-icons/",
+        "/app-assets/",
+        "/team-icons/",
+        "/channel-icons/",
+        "/avatar-decorations/",
+        "/avatar-decoration-presets/",
+        "/clan-badges/",
+        "/guild-events/"
+      ];
+
+      return userPaths.some(segment => path.includes(segment));
+    } catch {
+      return false;
+    }
+  }
+
+  export function isLikelyClientAssetUrl(url: string): boolean {
+    if (url.startsWith("data:") || url.startsWith("blob:")) return false;
+
+    try {
+      const parsed = new URL(url, location.href);
+      const path = parsed.pathname.toLowerCase();
+      if (!isDiscordOwnedUrl(parsed.href)) return false;
+      if (isUserContentAssetUrl(parsed.href)) return false;
+
+      return (
+        path.startsWith("/assets/") ||
+        path === "/assets" ||
+        path.includes("/assets/")
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  export function shouldIncludeAsset(
+    url: string,
+    source: AssetSource,
+    includeUserContent: boolean
+  ): boolean {
+    if (includeUserContent) return true;
+    if (isUserContentAssetUrl(url)) return false;
+
+    const runtimeOnlySources = new Set<AssetSource>(["dom", "performance", "cache"]);
+    if (!runtimeOnlySources.has(source)) return true;
+
+    return isLikelyClientAssetUrl(url);
+  }
+
   export function assetRegex(): RegExp {
     const ext = [...EXTENSIONS].join("|");
     return new RegExp(
