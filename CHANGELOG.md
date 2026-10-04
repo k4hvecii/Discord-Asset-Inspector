@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 - 2026-10-04
+
+- Rebuilt the inspector around a client-only scan model.
+- Removed DOM, Cache Storage and server/runtime content scanning from the distributed builds.
+- The toolbar button now opens a panel that scans only Discord static client assets.
+- Default scan uses loaded static client resources, CSS references and low-noise Webpack non-image assets.
+- Webpack image catalogs are no longer imported into the default result set.
+- Lazy JS scanning skips raw image catalogs; lazy CSS images remain supported.
+- Rebuilt the panel UI from scratch with fixed-height cards and permanently visible card actions.
+- Removed the accumulated layout-repair, user-content and raw-asset patch layers.
+- Initial rendering is limited to 80 cards with incremental loading for lower Electron overhead.
+
+
 ## 0.5.1 - 2026-10-04
 
 - Added a clean-mode filter for anonymous one-file hashed SVG Webpack modules.
