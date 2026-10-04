@@ -139,11 +139,7 @@ var DAI;
             const parsed = new URL(url, location.href);
             const host = parsed.hostname.toLowerCase();
             const path = parsed.pathname.toLowerCase();
-            const discordCdn = host === "cdn.discordapp.com" ||
-                host === "media.discordapp.net" ||
-                host.endsWith(".discordapp.com") ||
-                host.endsWith(".discordapp.net");
-            if (!discordCdn)
+            if (!isDiscordOwnedUrl(parsed.href))
                 return false;
             const userPaths = [
                 "/attachments/",
@@ -155,6 +151,8 @@ var DAI;
                 "/discovery-splashes/",
                 "/emojis/",
                 "/emoji/",
+                "/twemoji/",
+                "/emoji-sprites/",
                 "/stickers/",
                 "/sticker-packs/",
                 "/role-icons/",
@@ -164,8 +162,11 @@ var DAI;
                 "/channel-icons/",
                 "/avatar-decorations/",
                 "/avatar-decoration-presets/",
+                "/profile-effects/",
+                "/soundboard-sounds/",
                 "/clan-badges/",
-                "/guild-events/"
+                "/guild-events/",
+                "/guild-scheduled-events/"
             ];
             return userPaths.some(segment => path.includes(segment));
         }
